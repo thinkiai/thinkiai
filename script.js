@@ -1,5 +1,5 @@
 /**
- * Thinki AI Script by Kandi Chantilly © 2025
+ * Thinki AI Script by Kandi Chantilly Johnson Copyright © 2025 All rights reserved.
  * This script powers the Thinki AI chatbot using Gemini API.
  * Redistribution, reuse, or rehosting without permission is strictly prohibited.
  */
