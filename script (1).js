@@ -1,1 +1,0 @@
-// updated JS with fixed chat and placeholder login
