@@ -8,7 +8,7 @@ function sendMessage() {
     addToChatLog('You', userText);
     input.value = '';
 
-    fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_GEMINI_API_KEY', {
+    fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key= "AIzaSyBF_Ma25t3IQujh8IzwKANtPBftkCWV9Us', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
