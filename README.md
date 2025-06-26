@@ -1,4 +1,4 @@
-# 🤖 Thinki AI  
+# 🧠Thinki AI  
 **Smart Little Genius with a Big Brain** — created by Kandi Chantilly 💖  
 
 Welcome to **Thinki AI**, a fully branded, voice-activated AI virtual assistant created and owned by **Kandi Chantilly Johnson**, also known as Diva Nonetheless and KandiTalks.
