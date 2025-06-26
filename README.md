@@ -23,8 +23,13 @@ This custom web-based assistant is powered by Google Gemini API and designed wit
 
 🛑 **Copyright © 2025 Thinki AI by Kandi Chantilly Johnson. All Rights Reserved.**
 
+
+
+
+
 This project, design, branding, and all associated code are the intellectual property of Kandi Chantilly Johnson.  
 No part of this code, layout, or system may be reused, reproduced, redistributed, or modified without **express written permission**.
+
 
 Violators will be subject to copyright and intellectual property laws to the full extent permitted.
 
