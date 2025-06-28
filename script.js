@@ -1,6 +1,6 @@
 
-const API_KEY = "AIzaSyBF_Ma25t3IQujh8IzwKANtPBftkCWV9Us";  // GEMINI API
-
+const API_KEY = "AIzaSyBF_Ma25t3IQujh8IzwKANtPBftkCWV9Us"; // GEMINI API
+I
 const messagesDiv = document.getElementById("messages");
 
 async function sendMessage() {
@@ -22,7 +22,7 @@ async function sendMessage() {
     });
 
     const data = await response.json();
-    const reply = data?.candidates?.[0]?.content || "🤖 No reply";
+    const reply = data?.candidates?.[0]?.content || "🤖 respond back";
     messagesDiv.innerHTML += `<div><strong>Thinki:</strong> ${reply}</div>`;
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   } catch (err) {
