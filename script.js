@@ -1,6 +1,6 @@
 
 const API_KEY = "AIzaSyBF_Ma25t3IQujh8IzwKANtPBftkCWV9Us"; // GEMINI API
-I
+
 const messagesDiv = document.getElementById("messages");
 
 async function sendMessage() {
