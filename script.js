@@ -1,0 +1,7 @@
+const API_KEY="AIzaSyBF_Ma25t3IQujh8IzwKANtPBftkCWV9Us";
+const chatBox=document.getElementById("chat-box"),userInput=document.getElementById("user-input");
+document.getElementById("send").onclick=sendMessage;
+document.getElementById("download-btn").onclick=downloadChat;
+document.getElementById("mic-btn").onclick=()=>alert("Voice input coming soon!");
+document.getElementById("tools-btn").onclick=()=>alert("Tools coming soon!");
+async function sendMessage(){const t=userInput.value.trim();if(!t)return;chatBox.innerHTML+=`<p><strong>You:</strong> ${t}</p>`;userInput.value="";try{const r=await fetch(`https://generativelanguage.googleapis.com/v1beta3/models/gemini-pro:generateContent?key=${API_KEY}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:t}]}]})});const d=await r.json(),reply=d.candidates?.[0]?.content?.parts?.[0]?.text||"Sorry, no reply";chatBox.innerHTML+=`<p><strong>Thinki AI:</strong> ${reply}</p>`;chatBox.scrollTop=chatBox.scrollHeight}catch(e){chatBox.innerHTML+=`<p><strong>Thinki AI:</strong> Error retrieving response</p>`}}function downloadChat(){const b=new Blob([chatBox.innerText],{type:"text/plain"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="ThinkiChat.txt";a.click();}
