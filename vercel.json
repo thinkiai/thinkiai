@@ -1,2 +1,6 @@
-Key: GeminiProAPIKEY
-Value: AIzaSyCiLkI2FPEzVuuxHxbT6JPPYA6En7YrW0s
+
+{
+  "routes": [
+    { "src": "/api/gemini", "dest": "/api/gemini.js" }
+  ]
+}
