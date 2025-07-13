@@ -1,0 +1,52 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #e6f2ff;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+#chat-box {
+  height: 250px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  text-align: left;
+}
+
+input[type="text"] {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.buttons button, .buttons input[type="file"] {
+  margin: 5px;
+  padding: 8px 12px;
+}
+
+.disclaimer {
+  font-size: 0.9em;
+  color: #555;
+}
+
+footer {
+  margin-top: 15px;
+  font-size: 0.85em;
+  color: #999;
+}
