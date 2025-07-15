@@ -1,6 +1,8 @@
 {
   "version": 2,
-  "builds": [],
+  "builds": [
+    { "src": "api/gemini.js", "use": "@vercel/node" }
+  ],
   "routes": [
     {
       "src": "/api/.*",
