@@ -1,19 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export async function POST(req) {
-  const { message } = await req.json();
-  const apiKey = process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-  const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: message }] }]
-    })
-  });
-  const result = await response.json();
-  const reply = result?.candidates?.[0]?.content?.parts?.[0]?.text || "No reply";
-  return NextResponse.json({ reply });
-}
+export default async function (req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).send("Method Not Allowed");
+  }
+
+  const { message } = req.body;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const result = await model.generateContent(message);
+    const response = await result.response;
+    const text = response.text();
+    res.status(200).json({ text });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to generate response" }import
