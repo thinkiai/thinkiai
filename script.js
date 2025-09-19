@@ -4,15 +4,18 @@ async function sendMessage() {
   responseDiv.innerText = 'Loading...';
 
   try {
-    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_GEMINI_API_KEY', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: input }] }]
-      })
+      body: JSON.stringify({ message: input }) // Correctly send the user's message
     });
+    
+    if (!res.ok) {
+      throw new Error('Network response was not ok');
+    }
+
     const data = await res.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '🤖 No reply';
+    const reply = data.text || '🤖 No reply'; // Get the 'text' property from the response
     responseDiv.innerText = 'Thinki AI: ' + reply;
   } catch (err) {
     responseDiv.innerText = 'Error retrieving response';
