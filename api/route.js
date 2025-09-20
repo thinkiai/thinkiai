@@ -10,7 +10,7 @@ export default async function (req, res) {
   const { message } = req.body;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const result = await model.generateContent(message);
     const response = await result.response;
     const text = response.text();
