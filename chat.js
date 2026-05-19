@@ -1,13 +1,13 @@
 const SUPABASE_URL = "https://ywnnfvmyqiftjdwrtvts.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3bm5mdm15cWlmdGpkd3J0dnRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMDcxMzMsImV4cCI6MjA5NDc4MzEzM30.GdUhICvaoDA0mUrn_6Ic6uJojh85w046yCGhObD285w";
 
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let currentUser = null;
 let attachedImageBase64 = null;
 
 // AUTO-LOGIN CHECKER
-if (supabase) {
-    supabase.auth.onAuthStateChange((event, session) => {
+if (supabaseClient) {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
         const loginBtn = document.getElementById('login-btn');
         const welcomeTxt = document.getElementById('user-welcome');
         const logoutBtn = document.getElementById('logout-btn');
