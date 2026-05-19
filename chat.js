@@ -1,6 +1,5 @@
-// 1. DATABASE SETUP (Get these two from Supabase.com)
-const SUPABASE_URL = "https://your-project-id.supabase.co"; 
-const SUPABASE_ANON_KEY = "your-actual-anon-key-here";
+const SUPABASE_URL = "https://ywnnfvmyqiftjdwrtvts.supabase.co"; 
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3bm5mdm15cWlmdGpkd3J0dnRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMDcxMzMsImV4cCI6MjA5NDc4MzEzM30.GdUhICvaoDA0mUrn_6Ic6uJojh85w046yCGhObD285w";
 
 const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let currentUser = null;
