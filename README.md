@@ -15,4 +15,4 @@ Any unauthorized use will be subject to legal action.
 Powered by Gemini API KEY
 ---
 
-🧠 Thinki AI — Smart little genius with a big brain. Created by Kandi Chantilly Johnson aka Diva NoneTheLess aka KandiTalks 💖
+🧠 Thinki AI — Smart little genius with a big brain. Created by Kandi Chantilly Johnson💖
