@@ -1,25 +1,37 @@
-<script src="chat.js"></script><!DOCTYPE html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Thinki AI 💖</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thinki AI 🧠</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>🧠 Thinki AI </h1>
-    <p>Smart little genius with a big brain — created by Kandi Chantilly 💖</p>
-    <textarea id="userInput" placeholder="Talk to Thinki here…"></textarea>
-    <div class="buttons">
-      <button onclick="sendMessage()">💌 Send</button>
-      <input type="file" id="fileUpload" />
-      <button onclick="downloadChat()">📥 Download</button>
-      <button disabled>🎤</button>
-      <button disabled>🧰 Tools</button>
+    <div class="container">
+        <div id="auth-section" style="text-align: right; margin-bottom: 10px;">
+            <button id="login-btn" onclick="handleLogin()" style="padding: 6px 12px; border-radius: 15px; border: none; background: #3b82f6; color: white; cursor: pointer; font-weight: bold;">Sign In</button>
+            <span id="user-welcome" style="display: none; color: #fff; font-weight: bold; margin-right: 8px;"></span>
+            <button id="logout-btn" onclick="handleLogout()" style="display: none; padding: 4px 8px; border-radius: 12px; border: 1px solid #ef4444; background: transparent; color: #ef4444; cursor: pointer;">Sign Out</button>
+        </div>
+
+        <h1>🧠 Thinki AI </h1>
+        <p>Smart little genius with a big brain – created by Kandi Chantilly 🧠</p>
+        
+        <div id="chat-container" style="min-height: 200px; max-height: 400px; overflow-y: auto; text-align: left; margin-bottom: 15px; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05);"></div>
+
+        <textarea id="userInput" placeholder="Talk to Thinki here..."></textarea>
+        
+        <div class="class=buttons">
+            <button onclick="sendMessage()" style="background: #10b981; color: white; font-weight: bold;">Send</button>
+            <button onclick="startVoiceInput()">🎙️ Mic</button>
+            <button onclick="downloadChatHistory()">📥 Download</button>
+            
+            <input type="file" id="file-uploader" accept="image/*" style="display: none;" onchange="handleFileSelect(event)" />
+            <button onclick="document.getElementById('file-uploader').click()">📎 File</button>
+        </div>
     </div>
-    <div id="response">Thinki AI can make mistakes — always check important info.</div>
-    <footer>© 2025 Thinki AI by Kandi Chantilly Johnson 💖</footer>
-  </div>
+
+    <script src="chat.js"></script>
 </body>
 </html>
