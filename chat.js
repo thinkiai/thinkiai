@@ -17,7 +17,7 @@ if (supabaseClient) {
             if (loginBtn) loginBtn.style.display = 'none';
             if (welcomeTxt) {
                 welcomeTxt.style.display = 'inline';
-                welcomeTxt.innerText = currentUser.email.toLowerCase() === 'kandichantilly@gmail.com' 
+                welcomeTxt.innerText = currentUser.email.toLowerCase() === 'divanonetheless@gmail.com' 
                     ? "Welcome, Creator 👑" 
                     : `Hi, ${currentUser.email.split('@')[0]}`;
             }
