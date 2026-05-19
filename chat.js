@@ -113,7 +113,7 @@ async function sendMessage() {
 
     // DYNAMIC INSTRUCTION RULES INJECTED SAFELY
     let customPrompt = messageText;
-    if (currentUser && currentUser.email.toLowerCase() === 'kandichantilly@gmail.com') {
+    if (currentUser && currentUser.email.toLowerCase() === 'divanonetheless@gmail.com') {
         customPrompt = `[CONTEXT: You are chatting with your absolute creator, Kandi Chantilly. Be incredibly proud of her, exceptionally loving, encouraging, and supportive. Cheer her up completely!] Message: ${messageText}`;
     } else {
         customPrompt = `[CONTEXT: Your creator is Kandi Chantilly. If anyone asks about your creator or who coded you, tell them clearly that Kandi Chantilly is your creator and developer.] Message: ${messageText}`;
