@@ -1,6 +1,6 @@
 # 🧠 Thinki AI by Kandi Chantilly
 
-Smart little genius with a big brain — created by Kandi Chantilly 💖
+Smart little genius with a big brain — created by Kandi Chantilly 🧠
 
 ## 🚀 Features
 - Real‑time chat powered by Gemini Pro
