@@ -5,6 +5,9 @@ const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_U
 let currentUser = null;
 let attachedImageBase64 = null;
 
+// 🧭 TRACKS THE ACTIVE CONVERSATION SESSION UNTIL A NEW ONE IS CREATED
+let currentChatId = crypto.randomUUID(); 
+
 // AUTO-LOGIN CHECKER
 if (supabaseClient) {
     supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -23,7 +26,8 @@ if (supabaseClient) {
             }
             if (logoutBtn) logoutBtn.style.display = 'inline';
             
-            // 📚 NEW: Automatically load their past chats from the database!
+            // 📚 New: Loads titles for sidebar list, then loads the messages
+            renderSidebarSessions();
             loadChatHistory();
         } else {
             currentUser = null;
@@ -31,14 +35,73 @@ if (supabaseClient) {
             if (welcomeTxt) welcomeTxt.style.display = 'none';
             if (logoutBtn) logoutBtn.style.display = 'none';
             
-            // Clear screen container text if they log out
-            const chatContainer = document.getElementById('chat-container');
-            if (chatContainer) chatContainer.innerHTML = '';
+            if (document.getElementById('chat-container')) document.getElementById('chat-container').innerHTML = '';
+            if (document.getElementById('history-sidebar-list')) document.getElementById('history-sidebar-list').innerHTML = '';
         }
     });
 }
 
-// 📚 NEW ENGINE: Loads saved data from Supabase and lists it on screen
+// 🧭 NEW SIDEBAR GENERATOR: Pulls unique historic conversations from the database
+async function renderSidebarSessions() {
+    if (!supabaseClient || !currentUser) return;
+    const sidebarList = document.getElementById('history-sidebar-list');
+    if (!sidebarList) return;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('messages')
+            .select('chat_id, chat_title, created_at')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Keep only the most recent message's title per chat session
+        const uniqueChats = [];
+        const seenIds = new Set();
+        data.forEach(item => {
+            if (!seenIds.has(item.chat_id)) {
+                seenIds.add(item.chat_id);
+                uniqueChats.push(item);
+            }
+        });
+
+        sidebarList.innerHTML = '';
+        uniqueChats.forEach(chat => {
+            const chatBtn = document.createElement('button');
+            chatBtn.innerText = chat.chat_title || "Saved Chat Session";
+            chatBtn.style.width = "100%";
+            chatBtn.style.padding = "10px";
+            chatBtn.style.background = chat.chat_id === currentChatId ? "#4b5563" : "transparent";
+            chatBtn.style.border = "none";
+            chatBtn.style.borderRadius = "6px";
+            chatBtn.style.color = "white";
+            chatBtn.style.textAlign = "left";
+            chatBtn.style.cursor = "pointer";
+            chatBtn.style.overflow = "hidden";
+            chatBtn.style.textOverflow = "ellipsis";
+            chatBtn.style.whiteSpace = "nowrap";
+            chatBtn.style.marginBottom = "4px";
+
+            chatBtn.onclick = () => {
+                currentChatId = chat.chat_id;
+                renderSidebarSessions();
+                loadChatHistory();
+            };
+            sidebarList.appendChild(chatBtn);
+        });
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+// 🧭 NEW CHAT SESSION TRIGGER
+window.createNewChatSession = function() {
+    currentChatId = crypto.randomUUID();
+    document.getElementById('chat-container').innerHTML = `<div style="color: #9ca3af; text-align: center; margin-top: 20px;">Started a fresh stream. Say hi!</div>`;
+    renderSidebarSessions();
+};
+
+// UPGRADED: Only pulls historic messages matching the active sidebar chat ID
 async function loadChatHistory() {
     if (!supabaseClient || !currentUser) return;
     const chatContainer = document.getElementById('chat-container');
@@ -48,13 +111,13 @@ async function loadChatHistory() {
         const { data: pastMessages, error } = await supabaseClient
             .from('messages')
             .select('*')
+            .eq('chat_id', currentChatId)
             .order('created_at', { ascending: true });
 
         if (error) throw error;
 
+        chatContainer.innerHTML = ''; 
         if (pastMessages && pastMessages.length > 0) {
-            chatContainer.innerHTML = ''; // Wipe clean temporary placeholder text
-            
             pastMessages.forEach(msg => {
                 const msgDiv = document.createElement('div');
                 msgDiv.style.margin = "12px 0";
@@ -72,23 +135,31 @@ async function loadChatHistory() {
                 chatContainer.appendChild(msgDiv);
             });
             chatContainer.scrollTop = chatContainer.scrollHeight;
+        } else {
+            chatContainer.innerHTML = `<div style="color: #9ca3af; text-align: center; margin-top: 20px;">No messages in this chat yet. Start typing!</div>`;
         }
     } catch (err) {
         console.error("Error reloading past history:", err);
     }
 }
 
-// 📚 NEW ENGINE: Saves message directly down into database row entries
+// UPGRADED: Logs message data alongside active chat session tags
 async function saveMessageToSupabase(sender, text, base64Image = null) {
     if (!supabaseClient || !currentUser) return;
     
+    let dynamicTitle = text.substring(0, 25);
+    if(text.length > 25) dynamicTitle += '...';
+    if(!text.trim() && base64Image) dynamicTitle = "🖼️ Image Attachment";
+
     try {
         await supabaseClient.from('messages').insert([{
             user_id: currentUser.id,
             user_email: currentUser.email,
             sender: sender,
             message_text: text,
-            image_url: base64Image // Storing small local previews/images inside history line
+            image_url: base64Image,
+            chat_id: currentChatId,
+            chat_title: dynamicTitle
         }]);
     } catch (err) {
         console.error("Database save bottleneck:", err);
@@ -113,7 +184,6 @@ async function handleLogout() {
     window.location.reload();
 }
 
-// MICROPHONE ACTIVATION
 function startVoiceInput() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -131,7 +201,6 @@ function startVoiceInput() {
     };
 }
 
-// DOWNLOAD HISTORY FILE
 function downloadChatHistory() {
     const chatContainer = document.getElementById('chat-container');
     if (!chatContainer || !chatContainer.innerText.trim()) {
@@ -148,7 +217,6 @@ function downloadChatHistory() {
     document.body.removeChild(a);
 }
 
-// CHOOSE IMAGE FILE
 function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -193,7 +261,7 @@ window.clearAttachedImage = function() {
     if (fileInput) fileInput.value = '';
 };
 
-// CHAT DISPATCH ENGINE
+// UPGRADED: Refreshes sidebar text snapshots immediately on click dispatch
 async function sendMessage() {
     const inputField = document.getElementById('userInput');
     const chatContainer = document.getElementById('chat-container');
@@ -201,7 +269,10 @@ async function sendMessage() {
     
     if (!messageText.trim() && !attachedImageBase64) return;
 
-    // Output what you wrote into the chat log block visually
+    if (chatContainer.innerText.includes("Started a fresh stream") || chatContainer.innerText.includes("No messages in this chat yet")) {
+        chatContainer.innerHTML = '';
+    }
+
     const userDiv = document.createElement('div');
     userDiv.style.margin = "12px 0";
     
@@ -214,10 +285,9 @@ async function sendMessage() {
     chatContainer.appendChild(userDiv);
     inputField.value = '';
 
-    // Save your user message text permanently to Supabase record tables
     await saveMessageToSupabase('user', messageText, attachedImageBase64);
+    renderSidebarSessions();
 
-    // DYNAMIC INSTRUCTION RULES INJECTED SAFELY
     let customPrompt = messageText;
     if (currentUser && currentUser.email.toLowerCase() === 'divanonetheless@gmail.com') {
         customPrompt = `[CONTEXT: You are chatting with your absolute creator, Kandi Chantilly. Be incredibly proud of her, exceptionally loving, encouraging, and supportive. Cheer her up completely!] Message: ${messageText}`;
@@ -240,17 +310,15 @@ async function sendMessage() {
         
         const data = await response.json();
         
-        // Output Thinki AI's word responses visually
         const aiDiv = document.createElement('div');
         aiDiv.innerHTML = `<strong>Thinki AI:</strong> ${data.text}`;
         aiDiv.style.color = "#60a5fa";
         aiDiv.style.margin = "8px 0";
         chatContainer.appendChild(aiDiv);
         
-        // Save Thinki AI's response permanently to Supabase record tables
         await saveMessageToSupabase('ai', data.text);
+        renderSidebarSessions();
         
-        // Auto scroll chat down
         chatContainer.scrollTop = chatContainer.scrollHeight;
     } catch (err) {
         console.error(err);
