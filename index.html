@@ -6,35 +6,95 @@
     <title>Thinki AI 🧠</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Splits the screen into a Left Sidebar and Right Chat area */
+        .app-layout {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 260px;
+            min-width: 260px;
+            background: rgba(31, 41, 55, 0.95);
+            border-right: 1px solid #374151;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 15px;
+            box-sizing: border-box;
+        }
+
+        .main-chat-window {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Container for streaming old conversation links */
+        .sidebar-list-container {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+    </style>
 </head>
-<body>
-    <div class="container">
-        <div id="auth-section" style="text-align: right; margin-bottom: 10px;">
-            <button id="login-btn" onclick="handleLogin()" style="padding: 6px 12px; border-radius: 15px; border: none; background: #3b82f6; color: white; cursor: pointer; font-weight: bold;">Sign In</button>
-            <span id="user-welcome" style="display: none; color: #fff; font-weight: bold; margin-right: 8px;"></span>
-            <button id="logout-btn" onclick="handleLogout()" style="display: none; padding: 4px 8px; border-radius: 12px; border: 1px solid #ef4444; background: transparent; color: #ef4444; cursor: pointer;">Sign Out</button>
+<body style="margin: 0; padding: 0; background-color: #111827;">
+
+    <div class="app-layout">
+        
+        <div class="sidebar">
+            <button onclick="createNewChatSession()" style="width: 100%; padding: 12px; background: #3b82f6; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s;">
+                + New Chat
+            </button>
+            
+            <div id="history-sidebar-list" class="sidebar-list-container">
+                </div>
         </div>
 
-        <h1>🧠 Thinki AI</h1>
-        <p>Smart little genius with a big brain – created by Kandi Chantilly 🧠</p>
-        
-        <div id="chat-container" style="min-height: 200px; max-height: 400px; overflow-y: auto; text-align: left; margin-bottom: 15px; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05);"></div>
-
-        <textarea id="userInput" placeholder="Talk to Thinki here..."></textarea>
-        
-        <div class="buttons">
-            <button onclick="sendMessage()" style="background: #10b981; color: white; font-weight: bold;">Send</button>
-            <button onclick="startVoiceInput()">🎙️ Mic</button>
-            <button onclick="downloadChatHistory()">📥 Download</button>
+        <div class="main-chat-window">
             
-            <input type="file" id="file-uploader" accept="image/*" style="display: none;" onchange="handleFileSelect(event)" />
-            <button onclick="document.getElementById('file-uploader').click()">📎 File</button>
+            <div class="container" style="width: 100%; max-width: 600px; margin: 0 auto;">
+                
+                <div id="auth-section" style="text-align: right; margin-bottom: 10px;">
+                    <button id="login-btn" onclick="handleLogin()" style="padding: 6px 12px; border-radius: 15px; border: none; background: #3b82f6; color: white; cursor: pointer; font-weight: bold;">Sign In</button>
+                    <span id="user-welcome" style="display: none; color: #fff; font-weight: bold; margin-right: 8px;"></span>
+                    <button id="logout-btn" onclick="handleLogout()" style="display: none; padding: 4px 8px; border-radius: 12px; border: 1px solid #ef4444; background: transparent; color: #ef4444; cursor: pointer;">Sign Out</button>
+                </div>
+
+                <h1>🧠 Thinki AI</h1>
+                <p>Smart little genius with a big brain – created by Kandi Chantilly 🧠</p>
+                
+                <div id="chat-container" style="min-height: 250px; max-height: 400px; overflow-y: auto; text-align: left; margin-bottom: 15px; padding: 15px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);"></div>
+
+                <textarea id="userInput" placeholder="Talk to Thinki here..."></textarea>
+                
+                <div class="buttons">
+                    <button onclick="sendMessage()" style="background: #10b981; color: white; font-weight: bold;">Send</button>
+                    <button onclick="startVoiceInput()">🎙️ Mic</button>
+                    <button onclick="downloadChatHistory()">📥 Download</button>
+                    
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)" />
+                    <button onclick="document.getElementById('fileInput').click()">📎 File</button>
+                </div>
+            </div>
+
+            <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 20px; font-family: sans-serif; width: 100%; max-width: 600px;">
+                Friendly disclaimer: Thinki AI can make mistakes — always verify important info.
+            </p>
+            
         </div>
     </div>
 
     <script src="chat.js"></script>
-    <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 8px; font-family: sans-serif;">
-    Friendly disclaimer: Thinki AI can make mistakes — always verify important info.
-</p>
 </body>
 </html>
