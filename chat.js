@@ -22,13 +22,77 @@ if (supabaseClient) {
                     : `Hi, ${currentUser.email.split('@')[0]}`;
             }
             if (logoutBtn) logoutBtn.style.display = 'inline';
+            
+            // 📚 NEW: Automatically load their past chats from the database!
+            loadChatHistory();
         } else {
             currentUser = null;
             if (loginBtn) loginBtn.style.display = 'inline';
             if (welcomeTxt) welcomeTxt.style.display = 'none';
             if (logoutBtn) logoutBtn.style.display = 'none';
+            
+            // Clear screen container text if they log out
+            const chatContainer = document.getElementById('chat-container');
+            if (chatContainer) chatContainer.innerHTML = '';
         }
     });
+}
+
+// 📚 NEW ENGINE: Loads saved data from Supabase and lists it on screen
+async function loadChatHistory() {
+    if (!supabaseClient || !currentUser) return;
+    const chatContainer = document.getElementById('chat-container');
+    if (!chatContainer) return;
+
+    try {
+        const { data: pastMessages, error } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        if (pastMessages && pastMessages.length > 0) {
+            chatContainer.innerHTML = ''; // Wipe clean temporary placeholder text
+            
+            pastMessages.forEach(msg => {
+                const msgDiv = document.createElement('div');
+                msgDiv.style.margin = "12px 0";
+                
+                if (msg.sender === 'user') {
+                    let userHtml = `<strong>You:</strong> ${msg.message_text}`;
+                    if (msg.image_url) {
+                        userHtml += `<br><img src="${msg.image_url}" style="max-width: 180px; max-height: 180px; border-radius: 12px; margin-top: 6px; border: 1px solid #4b5563;" />`;
+                    }
+                    msgDiv.innerHTML = userHtml;
+                } else {
+                    msgDiv.innerHTML = `<strong>Thinki AI:</strong> ${msg.message_text}`;
+                    msgDiv.style.color = "#60a5fa";
+                }
+                chatContainer.appendChild(msgDiv);
+            });
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    } catch (err) {
+        console.error("Error reloading past history:", err);
+    }
+}
+
+// 📚 NEW ENGINE: Saves message directly down into database row entries
+async function saveMessageToSupabase(sender, text, base64Image = null) {
+    if (!supabaseClient || !currentUser) return;
+    
+    try {
+        await supabaseClient.from('messages').insert([{
+            user_id: currentUser.id,
+            user_email: currentUser.email,
+            sender: sender,
+            message_text: text,
+            image_url: base64Image // Storing small local previews/images inside history line
+        }]);
+    } catch (err) {
+        console.error("Database save bottleneck:", err);
+    }
 }
 
 async function handleLogin() {
@@ -49,9 +113,9 @@ async function handleLogout() {
     window.location.reload();
 }
 
-// 2. MICROPHONE ACTIVATION
+// MICROPHONE ACTIVATION
 function startVoiceInput() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
         alert("Browser voice tracking not supported. Use Google Chrome.");
         return;
@@ -67,7 +131,7 @@ function startVoiceInput() {
     };
 }
 
-// 3. DOWNLOAD HISTORY FILE
+// DOWNLOAD HISTORY FILE
 function downloadChatHistory() {
     const chatContainer = document.getElementById('chat-container');
     if (!chatContainer || !chatContainer.innerText.trim()) {
@@ -84,7 +148,7 @@ function downloadChatHistory() {
     document.body.removeChild(a);
 }
 
-// 4. CHOOSE IMAGE FILE (UPGRADED: Beautiful UI Preview Engine)
+// CHOOSE IMAGE FILE
 function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -93,7 +157,6 @@ function handleFileSelect(event) {
     reader.onload = function(e) {
         attachedImageBase64 = e.target.result;
         
-        // Find or build a container block for our photo thumbnail preview
         let previewContainer = document.getElementById('image-preview-container');
         if (!previewContainer) {
             previewContainer = document.createElement('div');
@@ -103,7 +166,6 @@ function handleFileSelect(event) {
             previewContainer.style.margin = '10px';
             previewContainer.style.padding = '5px';
             
-            // Insert it elegantly right above your user text entry container
             const inputArea = document.querySelector('.input-area') || document.getElementById('userInput');
             if (inputArea && inputArea.parentNode) {
                 inputArea.parentNode.insertBefore(previewContainer, inputArea);
@@ -112,7 +174,6 @@ function handleFileSelect(event) {
             }
         }
         
-        // Render the image preview thumbnail along with a clean close button
         previewContainer.innerHTML = `
             <div style="position: relative; display: inline-block;">
                 <img src="${attachedImageBase64}" style="width: 75px; height: 75px; object-fit: cover; border-radius: 10px; border: 2px solid #60a5fa;" />
@@ -123,7 +184,6 @@ function handleFileSelect(event) {
     reader.readAsDataURL(file);
 }
 
-// Global cleaning function to clear the attachment out if you change your mind
 window.clearAttachedImage = function() {
     attachedImageBase64 = null;
     const previewContainer = document.getElementById('image-preview-container');
@@ -133,7 +193,7 @@ window.clearAttachedImage = function() {
     if (fileInput) fileInput.value = '';
 };
 
-// 5. CHAT DISPATCH ENGINE (UPGRADED: Renders images into the live stream layout)
+// CHAT DISPATCH ENGINE
 async function sendMessage() {
     const inputField = document.getElementById('userInput');
     const chatContainer = document.getElementById('chat-container');
@@ -141,13 +201,11 @@ async function sendMessage() {
     
     if (!messageText.trim() && !attachedImageBase64) return;
 
-    // Output what you wrote into the chat log block
+    // Output what you wrote into the chat log block visually
     const userDiv = document.createElement('div');
     userDiv.style.margin = "12px 0";
     
     let userContentHtml = `<strong>You:</strong> ${messageText}`;
-    
-    // If you attached an image, embed it visually straight inside your message log
     if (attachedImageBase64) {
         userContentHtml += `<br><img src="${attachedImageBase64}" style="max-width: 180px; max-height: 180px; border-radius: 12px; margin-top: 6px; border: 1px solid #4b5563;" />`;
     }
@@ -155,6 +213,9 @@ async function sendMessage() {
     userDiv.innerHTML = userContentHtml;
     chatContainer.appendChild(userDiv);
     inputField.value = '';
+
+    // Save your user message text permanently to Supabase record tables
+    await saveMessageToSupabase('user', messageText, attachedImageBase64);
 
     // DYNAMIC INSTRUCTION RULES INJECTED SAFELY
     let customPrompt = messageText;
@@ -164,7 +225,6 @@ async function sendMessage() {
         customPrompt = `[CONTEXT: Your creator is Kandi Chantilly. If anyone asks about your creator or who coded you, tell them clearly that Kandi Chantilly is your creator and developer.] Message: ${messageText}`;
     }
 
-    // Capture image to send to backend api, then reset attachment completely
     const imageToSend = attachedImageBase64;
     window.clearAttachedImage();
 
@@ -174,18 +234,21 @@ async function sendMessage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 message: customPrompt,
-                image: imageToSend // Pushes the image down into your Vercel API routes pipeline
+                image: imageToSend
             })
         });
         
         const data = await response.json();
         
-        // Output Thinki AI's word responses
+        // Output Thinki AI's word responses visually
         const aiDiv = document.createElement('div');
         aiDiv.innerHTML = `<strong>Thinki AI:</strong> ${data.text}`;
         aiDiv.style.color = "#60a5fa";
         aiDiv.style.margin = "8px 0";
         chatContainer.appendChild(aiDiv);
+        
+        // Save Thinki AI's response permanently to Supabase record tables
+        await saveMessageToSupabase('ai', data.text);
         
         // Auto scroll chat down
         chatContainer.scrollTop = chatContainer.scrollHeight;
