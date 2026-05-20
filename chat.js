@@ -33,9 +33,9 @@ if (supabaseClient) {
 
 async function handleLogin() {
     const email = prompt("Enter your email address to sign in:");
-    if (!email || !supabase) return;
+    if (!email || !supabaseClient) return;
     
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabaseClient.auth.signInWithOtp({
         email: email,
         options: { emailRedirectTo: window.location.origin }
     });
@@ -45,7 +45,7 @@ async function handleLogin() {
 }
 
 async function handleLogout() {
-    if (supabase) await supabase.auth.signOut();
+    if (supabaseClient) await supabaseClient.auth.signOut();
     window.location.reload();
 }
 
@@ -84,30 +84,75 @@ function downloadChatHistory() {
     document.body.removeChild(a);
 }
 
-// 4. CHOOSE IMAGE FILE
+// 4. CHOOSE IMAGE FILE (UPGRADED: Beautiful UI Preview Engine)
 function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
+    
     const reader = new FileReader();
     reader.onload = function(e) {
         attachedImageBase64 = e.target.result;
-        alert(`File selected: ${file.name}`);
+        
+        // Find or build a container block for our photo thumbnail preview
+        let previewContainer = document.getElementById('image-preview-container');
+        if (!previewContainer) {
+            previewContainer = document.createElement('div');
+            previewContainer.id = 'image-preview-container';
+            previewContainer.style.position = 'relative';
+            previewContainer.style.display = 'inline-block';
+            previewContainer.style.margin = '10px';
+            previewContainer.style.padding = '5px';
+            
+            // Insert it elegantly right above your user text entry container
+            const inputArea = document.querySelector('.input-area') || document.getElementById('userInput');
+            if (inputArea && inputArea.parentNode) {
+                inputArea.parentNode.insertBefore(previewContainer, inputArea);
+            } else {
+                document.body.appendChild(previewContainer);
+            }
+        }
+        
+        // Render the image preview thumbnail along with a clean close button
+        previewContainer.innerHTML = `
+            <div style="position: relative; display: inline-block;">
+                <img src="${attachedImageBase64}" style="width: 75px; height: 75px; object-fit: cover; border-radius: 10px; border: 2px solid #60a5fa;" />
+                <button onclick="clearAttachedImage()" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;">X</button>
+            </div>
+        `;
     };
     reader.readAsDataURL(file);
 }
 
-// 5. CHAT DISPATCH ENGINE
+// Global cleaning function to clear the attachment out if you change your mind
+window.clearAttachedImage = function() {
+    attachedImageBase64 = null;
+    const previewContainer = document.getElementById('image-preview-container');
+    if (previewContainer) previewContainer.remove();
+    
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.value = '';
+};
+
+// 5. CHAT DISPATCH ENGINE (UPGRADED: Renders images into the live stream layout)
 async function sendMessage() {
     const inputField = document.getElementById('userInput');
     const chatContainer = document.getElementById('chat-container');
     let messageText = inputField.value;
     
-    if (!messageText.trim()) return;
+    if (!messageText.trim() && !attachedImageBase64) return;
 
     // Output what you wrote into the chat log block
     const userDiv = document.createElement('div');
-    userDiv.innerHTML = `<strong>You:</strong> ${messageText}`;
-    userDiv.style.margin = "8px 0";
+    userDiv.style.margin = "12px 0";
+    
+    let userContentHtml = `<strong>You:</strong> ${messageText}`;
+    
+    // If you attached an image, embed it visually straight inside your message log
+    if (attachedImageBase64) {
+        userContentHtml += `<br><img src="${attachedImageBase64}" style="max-width: 180px; max-height: 180px; border-radius: 12px; margin-top: 6px; border: 1px solid #4b5563;" />`;
+    }
+    
+    userDiv.innerHTML = userContentHtml;
     chatContainer.appendChild(userDiv);
     inputField.value = '';
 
@@ -119,11 +164,18 @@ async function sendMessage() {
         customPrompt = `[CONTEXT: Your creator is Kandi Chantilly. If anyone asks about your creator or who coded you, tell them clearly that Kandi Chantilly is your creator and developer.] Message: ${messageText}`;
     }
 
+    // Capture image to send to backend api, then reset attachment completely
+    const imageToSend = attachedImageBase64;
+    window.clearAttachedImage();
+
     try {
         const response = await fetch('/api/route', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: customPrompt })
+            body: JSON.stringify({ 
+                message: customPrompt,
+                image: imageToSend // Pushes the image down into your Vercel API routes pipeline
+            })
         });
         
         const data = await response.json();
