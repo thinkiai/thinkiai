@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+        <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -44,7 +44,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding: 60px 20px 20px 20px; /* Space on top for the sliding toggle button */
+            padding: 20px 20px 20px 20px;
             box-sizing: border-box;
             position: relative;
             background-color: #111827;
@@ -78,6 +78,27 @@
             justify-content: center;
             font-weight: bold;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* Header layout grouping text and brain emoji inline */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        .brand-header h1 {
+            color: white;
+            font-family: sans-serif;
+            margin: 0;
+            font-size: 32px;
+        }
+
+        .brand-logo-emoji {
+            font-size: 32px;
         }
 
         /* Responsive Mobile Handling over smaller viewport frames */
@@ -118,16 +139,20 @@
             
             <div class="container" style="width: 100%; max-width: 600px; margin: 0 auto;">
                 
-                <div id="auth-section" style="text-align: right; margin-bottom: 10px;">
+                <div id="auth-section" style="text-align: right; margin-bottom: 10px; min-height: 35px;">
                     <button id="login-btn" onclick="handleLogin()" style="padding: 6px 12px; border-radius: 15px; border: none; background: #3b82f6; color: white; cursor: pointer; font-weight: bold;">Sign In</button>
                     <span id="user-welcome" style="display: none; color: #fff; font-weight: bold; margin-right: 8px;"></span>
                     <button id="logout-btn" onclick="handleLogout()" style="display: none; padding: 4px 8px; border-radius: 12px; border: 1px solid #ef4444; background: transparent; color: #ef4444; cursor: pointer;">Sign Out</button>
                 </div>
 
-                <h1 style="color: white; font-family: sans-serif; text-align: center; margin-top: 5px;">🧠 Thinki AI</h1>
-                <p style="color: #9ca3af; font-family: sans-serif; text-align: center; margin-bottom: 20px;">Smart little genius with a big brain – created by Kandi Chantilly 🧠</p>
+                <div class="brand-header">
+                    <span class="brand-logo-emoji">🧠</span>
+                    <h1>Thinki AI</h1>
+                </div>
                 
-                <div id="chat-container" style="min-height: 250px; max-height: 400px; overflow-y: auto; text-align: left; margin-bottom: 15px; padding: 15px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; font-family: sans-serif;"></div>
+                <p style="color: #9ca3af; font-family: sans-serif; text-align: center; margin-top: 0; margin-bottom: 20px;">Smart little genius with a big brain – created by Kandi Chantilly 🧠</p>
+                
+                <div id="chat-container" style="min-height: 250px; max-height: 480px; overflow-y: auto; text-align: left; margin-bottom: 15px; padding: 15px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; font-family: sans-serif;"></div>
 
                 <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
                     <textarea id="userInput" placeholder="Talk to Thinki here..." style="width: 100%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #374151; background: #1f2937; color: white; font-family: sans-serif; resize: none; box-sizing: border-box;"></textarea>
