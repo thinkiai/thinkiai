@@ -7,37 +7,50 @@
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Splits the screen into a Left Sidebar and Right Chat area */
+        /* Main Application Layout Wrapper */
         .app-layout {
             display: flex;
             width: 100vw;
             height: 100vh;
             overflow: hidden;
+            position: relative;
         }
         
+        /* 🧭 Sliding Navigation Sidebar Panel */
         .sidebar {
             width: 260px;
             min-width: 260px;
-            background: rgba(31, 41, 55, 0.95);
+            background: rgba(31, 41, 55, 0.98);
             border-right: 1px solid #374151;
             display: flex;
             flex-direction: column;
             padding: 20px 15px;
             box-sizing: border-box;
+            transition: transform 0.3s ease;
+            z-index: 1000;
         }
 
+        /* Classes to control sliding action */
+        .sidebar.collapsed {
+            transform: translateX(-260px);
+            margin-right: -260px;
+        }
+
+        /* 💬 Main Chat Workspace Area */
         .main-chat-window {
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            justify-content: flex-start;
+            padding: 60px 20px 20px 20px; /* Space on top for the sliding toggle button */
             box-sizing: border-box;
+            position: relative;
+            background-color: #111827;
         }
 
-        /* Container for streaming old conversation links */
+        /* Container for streaming historic conversation links */
         .sidebar-list-container {
             flex: 1;
             overflow-y: auto;
@@ -46,13 +59,53 @@
             flex-direction: column;
             gap: 8px;
         }
+
+        /* 🍔 Floating Toggle Menu Button */
+        .menu-toggle-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* Responsive Mobile Handling over smaller viewport frames */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 100%;
+            }
+            .sidebar.collapsed {
+                transform: translateX(-260px);
+                margin-right: 0;
+            }
+            .main-chat-window {
+                width: 100%;
+                padding-top: 70px;
+            }
+        }
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #111827;">
 
     <div class="app-layout">
         
-        <div class="sidebar">
+        <button class="menu-toggle-btn" onclick="toggleSidebarMenu()">☰</button>
+        
+        <div id="thinki-sidebar" class="sidebar">
             <button onclick="createNewChatSession()" style="width: 100%; padding: 12px; background: #3b82f6; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s;">
                 + New Chat
             </button>
@@ -71,24 +124,26 @@
                     <button id="logout-btn" onclick="handleLogout()" style="display: none; padding: 4px 8px; border-radius: 12px; border: 1px solid #ef4444; background: transparent; color: #ef4444; cursor: pointer;">Sign Out</button>
                 </div>
 
-                <h1>🧠 Thinki AI</h1>
-                <p>Smart little genius with a big brain – created by Kandi Chantilly 🧠</p>
+                <h1 style="color: white; font-family: sans-serif; text-align: center; margin-top: 5px;">🧠 Thinki AI</h1>
+                <p style="color: #9ca3af; font-family: sans-serif; text-align: center; margin-bottom: 20px;">Smart little genius with a big brain – created by Kandi Chantilly 🧠</p>
                 
-                <div id="chat-container" style="min-height: 250px; max-height: 400px; overflow-y: auto; text-align: left; margin-bottom: 15px; padding: 15px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);"></div>
+                <div id="chat-container" style="min-height: 250px; max-height: 400px; overflow-y: auto; text-align: left; margin-bottom: 15px; padding: 15px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; font-family: sans-serif;"></div>
 
-                <textarea id="userInput" placeholder="Talk to Thinki here..."></textarea>
-                
-                <div class="buttons">
-                    <button onclick="sendMessage()" style="background: #10b981; color: white; font-weight: bold;">Send</button>
-                    <button onclick="startVoiceInput()">🎙️ Mic</button>
-                    <button onclick="downloadChatHistory()">📥 Download</button>
+                <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+                    <textarea id="userInput" placeholder="Talk to Thinki here..." style="width: 100%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #374151; background: #1f2937; color: white; font-family: sans-serif; resize: none; box-sizing: border-box;"></textarea>
                     
-                    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)" />
-                    <button onclick="document.getElementById('fileInput').click()">📎 File</button>
+                    <div class="buttons" style="display: flex; gap: 8px; margin-top: 10px; width: 100%; justify-content: center; flex-wrap: wrap;">
+                        <button onclick="sendMessage()" style="background: #10b981; color: white; font-weight: bold; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">Send</button>
+                        <button onclick="startVoiceInput()" style="background: #4b5563; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;">🎙️ Mic</button>
+                        <button onclick="downloadChatHistory()" style="background: #4b5563; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;">📥 Download</button>
+                        
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)" />
+                        <button onclick="document.getElementById('fileInput').click()" style="background: #4b5563; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;">📎 File</button>
+                    </div>
                 </div>
             </div>
 
-            <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 20px; font-family: sans-serif; width: 100%; max-width: 600px;">
+            <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 30px; font-family: sans-serif; width: 100%; max-width: 600px;">
                 Friendly disclaimer: Thinki AI can make mistakes — always verify important info.
             </p>
             
