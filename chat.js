@@ -337,6 +337,7 @@ async function sendMessage() {
         console.error(err);
         alert("Couldn't reach Thinki AI.");
 }
+}
 // 💻 Fix: Keep sidebar closed on BOTH desktop and mobile by default!
 document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.getElementById("thinki-sidebar") || document.querySelector(".sidebar");
