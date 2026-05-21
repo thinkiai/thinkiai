@@ -1,13 +1,21 @@
-        <!DOCTYPE html>
+       <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Thinki AI 🧠</title>
-    <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Main Application Layout Wrapper */
+        /* 🚨 Bulletproof Global Overrides to force Dark Mode Theme */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: #111827 !important;
+            color: #ffffff !important;
+            font-family: Arial, sans-serif !important;
+        }
+
+        /* Main Full-Screen Layout Splitter */
         .app-layout {
             display: flex;
             width: 100vw;
@@ -16,12 +24,12 @@
             position: relative;
         }
         
-        /* 🧭 Sliding Navigation Sidebar Panel */
+        /* 🧭 Sliding Sidebar Styling Panel */
         .sidebar {
             width: 260px;
             min-width: 260px;
-            background: rgba(31, 41, 55, 0.98);
-            border-right: 1px solid #374151;
+            background: #1f2937 !important;
+            border-right: 1px solid #374151 !important;
             display: flex;
             flex-direction: column;
             padding: 20px 15px;
@@ -30,13 +38,13 @@
             z-index: 1000;
         }
 
-        /* Classes to control sliding action */
+        /* Collapsed Sidebar Hidden State */
         .sidebar.collapsed {
             transform: translateX(-260px);
             margin-right: -260px;
         }
 
-        /* 💬 Main Chat Workspace Area */
+        /* 💬 Main Central Workspace Container Area */
         .main-chat-window {
             flex: 1;
             overflow-y: auto;
@@ -44,13 +52,13 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding: 20px 20px 20px 20px;
+            padding: 20px;
             box-sizing: border-box;
             position: relative;
-            background-color: #111827;
+            background-color: #111827 !important;
         }
 
-        /* Container for streaming historic conversation links */
+        /* Live Scrolling History Feed Window wrapper */
         .sidebar-list-container {
             flex: 1;
             overflow-y: auto;
@@ -60,17 +68,17 @@
             gap: 8px;
         }
 
-        /* 🍔 Floating Toggle Menu Button */
+        /* 🍔 Sticky Floating Menu Toggle Trigger Button */
         .menu-toggle-btn {
             position: absolute;
             top: 15px;
             left: 15px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 14px;
-            font-size: 18px;
+            background: #3b82f6 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 8px 14px !important;
+            font-size: 18px !important;
             cursor: pointer;
             z-index: 1100;
             display: flex;
@@ -80,28 +88,55 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
-        /* Header layout grouping text and brain emoji inline */
+        /* 🧠 Header brand design holding title text and logo side by side */
         .brand-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 5px;
-            margin-bottom: 5px;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 12px !important;
+            margin-top: 15px !important;
+            margin-bottom: 5px !important;
+            width: 100% !important;
         }
 
         .brand-header h1 {
-            color: white;
-            font-family: sans-serif;
-            margin: 0;
-            font-size: 32px;
+            color: #ffffff !important;
+            margin: 0 !important;
+            font-size: 32px !important;
+            font-family: Arial, sans-serif !important;
+            display: inline-block !important;
         }
 
         .brand-logo-emoji {
-            font-size: 32px;
+            font-size: 32px !important;
         }
 
-        /* Responsive Mobile Handling over smaller viewport frames */
+        /* Central Layout Content Wrapper Override */
+        .thinki-main-container {
+            width: 100% !important;
+            max-width: 600px !important;
+            margin: 0 auto !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            text-align: center !important;
+        }
+
+        /* 💬 Dynamic Live Text Dialogue Box styling */
+        #chat-container {
+            min-height: 280px !important;
+            max-height: 480px !important;
+            overflow-y: auto !important;
+            text-align: left !important;
+            margin-bottom: 15px !important;
+            padding: 15px !important;
+            border-radius: 8px !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+        }
+
+        /* Responsive Breakpoints handling viewports */
         @media (max-width: 768px) {
             .sidebar {
                 position: absolute;
@@ -120,7 +155,7 @@
         }
     </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #111827;">
+<body>
 
     <div class="app-layout">
         
@@ -137,7 +172,7 @@
 
         <div class="main-chat-window">
             
-            <div class="container" style="width: 100%; max-width: 600px; margin: 0 auto;">
+            <div class="thinki-main-container">
                 
                 <div id="auth-section" style="text-align: right; margin-bottom: 10px; min-height: 35px;">
                     <button id="login-btn" onclick="handleLogin()" style="padding: 6px 12px; border-radius: 15px; border: none; background: #3b82f6; color: white; cursor: pointer; font-weight: bold;">Sign In</button>
@@ -150,12 +185,12 @@
                     <h1>Thinki AI</h1>
                 </div>
                 
-                <p style="color: #9ca3af; font-family: sans-serif; text-align: center; margin-top: 0; margin-bottom: 20px;">Smart little genius with a big brain – created by Kandi Chantilly 🧠</p>
+                <p style="color: #9ca3af !important; text-align: center; margin-top: 5px; margin-bottom: 20px;">Smart little genius with a big brain – created by Kandi Chantilly 🧠</p>
                 
-                <div id="chat-container" style="min-height: 250px; max-height: 480px; overflow-y: auto; text-align: left; margin-bottom: 15px; padding: 15px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; font-family: sans-serif;"></div>
+                <div id="chat-container"></div>
 
                 <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-                    <textarea id="userInput" placeholder="Talk to Thinki here..." style="width: 100%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #374151; background: #1f2937; color: white; font-family: sans-serif; resize: none; box-sizing: border-box;"></textarea>
+                    <textarea id="userInput" placeholder="Talk to Thinki here..." style="width: 100%; height: 85px; padding: 10px; border-radius: 8px; border: 1px solid #374151; background: #1f2937; color: white; font-family: Arial, sans-serif; resize: none; box-sizing: border-box;"></textarea>
                     
                     <div class="buttons" style="display: flex; gap: 8px; margin-top: 10px; width: 100%; justify-content: center; flex-wrap: wrap;">
                         <button onclick="sendMessage()" style="background: #10b981; color: white; font-weight: bold; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">Send</button>
@@ -168,7 +203,7 @@
                 </div>
             </div>
 
-            <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 30px; font-family: sans-serif; width: 100%; max-width: 600px;">
+            <p style="text-align: center; color: #9ca3af !important; font-size: 12px; margin-top: 30px; width: 100%; max-width: 600px;">
                 Friendly disclaimer: Thinki AI can make mistakes — always verify important info.
             </p>
             
