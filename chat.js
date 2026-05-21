@@ -8,6 +8,14 @@ let attachedImageBase64 = null;
 // 🧭 TRACKS THE ACTIVE CONVERSATION SESSION UNTIL A NEW ONE IS CREATED
 let currentChatId = crypto.randomUUID(); 
 
+// 🍔 NEW SIDEBAR TOGGLE FUNCTION (Smoothly opens and closes the menu block)
+window.toggleSidebarMenu = function() {
+    const sidebar = document.getElementById('thinki-sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('collapsed');
+    }
+};
+
 // AUTO-LOGIN CHECKER
 if (supabaseClient) {
     supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -26,7 +34,6 @@ if (supabaseClient) {
             }
             if (logoutBtn) logoutBtn.style.display = 'inline';
             
-            // 📚 New: Loads titles for sidebar list, then loads the messages
             renderSidebarSessions();
             loadChatHistory();
         } else {
@@ -41,7 +48,7 @@ if (supabaseClient) {
     });
 }
 
-// 🧭 NEW SIDEBAR GENERATOR: Pulls unique historic conversations from the database
+// 🧭 SIDEBAR GENERATOR: Pulls unique historic conversations from the database
 async function renderSidebarSessions() {
     if (!supabaseClient || !currentUser) return;
     const sidebarList = document.getElementById('history-sidebar-list');
@@ -55,7 +62,6 @@ async function renderSidebarSessions() {
 
         if (error) throw error;
 
-        // Keep only the most recent message's title per chat session
         const uniqueChats = [];
         const seenIds = new Set();
         data.forEach(item => {
@@ -71,7 +77,7 @@ async function renderSidebarSessions() {
             chatBtn.innerText = chat.chat_title || "Saved Chat Session";
             chatBtn.style.width = "100%";
             chatBtn.style.padding = "10px";
-            chatBtn.style.background = chat.chat_id === currentChatId ? "#4b5563" : "transparent";
+            chatBtn.style.background = chat.chat_id === currentChatId ? "#3b82f6" : "transparent";
             chatBtn.style.border = "none";
             chatBtn.style.borderRadius = "6px";
             chatBtn.style.color = "white";
@@ -86,6 +92,11 @@ async function renderSidebarSessions() {
                 currentChatId = chat.chat_id;
                 renderSidebarSessions();
                 loadChatHistory();
+                
+                // On mobile devices, auto close sidebar when a chat channel is tapped
+                if (window.innerWidth <= 768) {
+                    window.toggleSidebarMenu();
+                }
             };
             sidebarList.appendChild(chatBtn);
         });
@@ -99,9 +110,12 @@ window.createNewChatSession = function() {
     currentChatId = crypto.randomUUID();
     document.getElementById('chat-container').innerHTML = `<div style="color: #9ca3af; text-align: center; margin-top: 20px;">Started a fresh stream. Say hi!</div>`;
     renderSidebarSessions();
+    if (window.innerWidth <= 768) {
+        window.toggleSidebarMenu();
+    }
 };
 
-// UPGRADED: Only pulls historic messages matching the active sidebar chat ID
+// Loads historic messages matching the active sidebar chat ID
 async function loadChatHistory() {
     if (!supabaseClient || !currentUser) return;
     const chatContainer = document.getElementById('chat-container');
@@ -143,7 +157,7 @@ async function loadChatHistory() {
     }
 }
 
-// UPGRADED: Logs message data alongside active chat session tags
+// Saves data alongside active chat session tags
 async function saveMessageToSupabase(sender, text, base64Image = null) {
     if (!supabaseClient || !currentUser) return;
     
@@ -234,7 +248,7 @@ function handleFileSelect(event) {
             previewContainer.style.margin = '10px';
             previewContainer.style.padding = '5px';
             
-            const inputArea = document.querySelector('.input-area') || document.getElementById('userInput');
+            const inputArea = document.getElementById('userInput');
             if (inputArea && inputArea.parentNode) {
                 inputArea.parentNode.insertBefore(previewContainer, inputArea);
             } else {
@@ -244,7 +258,7 @@ function handleFileSelect(event) {
         
         previewContainer.innerHTML = `
             <div style="position: relative; display: inline-block;">
-                <img src="${attachedImageBase64}" style="width: 75px; height: 75px; object-fit: cover; border-radius: 10px; border: 2px solid #60a5fa;" />
+                <img src="${attachedImageBase64}" style="width: 75px; height: 75px; object-fit: cover; border-radius: 10px; border: 2px solid #3b82f6;" />
                 <button onclick="clearAttachedImage()" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;">X</button>
             </div>
         `;
@@ -261,7 +275,6 @@ window.clearAttachedImage = function() {
     if (fileInput) fileInput.value = '';
 };
 
-// UPGRADED: Refreshes sidebar text snapshots immediately on click dispatch
 async function sendMessage() {
     const inputField = document.getElementById('userInput');
     const chatContainer = document.getElementById('chat-container');
