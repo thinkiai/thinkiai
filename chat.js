@@ -338,3 +338,20 @@ async function sendMessage() {
         alert("Couldn't reach Thinki AI.");
     }
 }
+// Automatically closes the drawer if a user loads the app on a mobile device
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById("thinki-sidebar");
+        if (sidebar) {
+            sidebar.classList.add("collapsed");
+        }
+    }
+});
+
+// Smooth toggle function for the burger menu icon trigger
+function toggleSidebarMenu() {
+    const sidebar = document.getElementById("thinki-sidebar");
+    if (sidebar) {
+        sidebar.classList.toggle("collapsed");
+    }
+}
