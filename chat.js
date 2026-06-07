@@ -11,13 +11,13 @@ let userPlanStatus = 'free';
 // 🧭 TRACKS THE ACTIVE CONVERSATION SESSION UNTIL A NEW ONE IS CREATED
 let currentChatId = crypto.randomUUID(); 
 
-// 🍔 GLOBAL SIDEBAR TOGGLE FUNCTION
-window.toggleSidebarMenu = function() {
+// 🍔 CLEAN SIDEBAR TOGGLE FUNCTION (Declared directly for your HTML onclick execution)
+function toggleSidebarMenu() {
     const sidebar = document.getElementById('thinki-sidebar') || document.querySelector('.sidebar');
     if (sidebar) {
         sidebar.classList.toggle('collapsed');
     }
-};
+}
 
 // AUTO-LOGIN CHECKER
 if (supabaseClient) {
@@ -47,109 +47,3 @@ if (supabaseClient) {
             
             if (document.getElementById('chat-container')) document.getElementById('chat-container').innerHTML = '';
             if (document.getElementById('history-sidebar-list')) document.getElementById('history-sidebar-list').innerHTML = '';
-        }
-    });
-}
-
-// 🧭 SIDEBAR GENERATOR: Pulls unique historic conversations from the database
-async function renderSidebarSessions() {
-    if (!supabaseClient || !currentUser) return;
-    const sidebarList = document.getElementById('history-sidebar-list');
-    if (!sidebarList) return;
-
-    try {
-        const { data, error } = await supabaseClient
-            .from('messages')
-            .select('chat_id, chat_title, created_at')
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        const uniqueChats = [];
-        const seenIds = new Set();
-        data.forEach(item => {
-            if (!seenIds.has(item.chat_id)) {
-                seenIds.add(item.chat_id);
-                uniqueChats.push(item);
-            }
-        });
-
-        sidebarList.innerHTML = '';
-        uniqueChats.forEach(chat => {
-            const chatBtn = document.createElement('button');
-            chatBtn.innerText = chat.chat_title || "Saved Chat Session";
-            chatBtn.style.width = "100%";
-            chatBtn.style.padding = "10px";
-            chatBtn.style.background = chat.chat_id === currentChatId ? "#3b82f6" : "transparent";
-            chatBtn.style.border = "none";
-            chatBtn.style.borderRadius = "6px";
-            chatBtn.style.color = "white";
-            chatBtn.style.textAlign = "left";
-            chatBtn.style.cursor = "pointer";
-            chatBtn.style.overflow = "hidden";
-            chatBtn.style.textOverflow = "ellipsis";
-            chatBtn.style.whiteSpace = "nowrap";
-            chatBtn.style.marginBottom = "4px";
-
-            chatBtn.onclick = () => {
-                currentChatId = chat.chat_id;
-                renderSidebarSessions();
-                loadChatHistory();
-                
-                if (window.innerWidth <= 768) {
-                    window.toggleSidebarMenu();
-                }
-            };
-            sidebarList.appendChild(chatBtn);
-        });
-    } catch(err) {
-        console.error(err);
-    }
-}
-
-// 🧭 NEW CHAT SESSION TRIGGER
-window.createNewChatSession = function() {
-    currentChatId = crypto.randomUUID();
-    document.getElementById('chat-container').innerHTML = `<div style="color: #9ca3af; text-align: center; margin-top: 20px;">Started a fresh stream. Say hi!</div>`;
-    renderSidebarSessions();
-    if (window.innerWidth <= 768) {
-        window.toggleSidebarMenu();
-    }
-};
-
-// Loads historic messages matching the active sidebar chat ID
-async function loadChatHistory() {
-    if (!supabaseClient || !currentUser) return;
-    const chatContainer = document.getElementById('chat-container');
-    if (!chatContainer) return;
-
-    try {
-        const { data: pastMessages, error } = await supabaseClient
-            .from('messages')
-            .select('*')
-            .eq('chat_id', currentChatId)
-            .order('created_at', { ascending: true });
-
-        if (error) throw error;
-
-        chatContainer.innerHTML = ''; 
-        if (pastMessages && pastMessages.length > 0) {
-            pastMessages.forEach(msg => {
-                const msgDiv = document.createElement('div');
-                msgDiv.style.margin = "12px 0";
-                
-                if (msg.sender === 'user') {
-                    let userHtml = `<strong>You:</strong> ${msg.message_text}`;
-                    if (msg.image_url) {
-                        userHtml += `<br><img src="${msg.image_url}" style="max-width: 180px; max-height: 180px; border-radius: 12px; margin-top: 6px; border: 1px solid #4b5563;" />`;
-                    }
-                    msgDiv.innerHTML = userHtml;
-                } else {
-                    msgDiv.innerHTML = `<strong>Thinki AI:</strong> ${msg.message_text}`;
-                    msgDiv.style.color = "#60a5fa";
-                }
-                chatContainer.appendChild(msgDiv);
-            });
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        } else {
-            chatContainer.innerHTML = `<div style="color: #9ca3af; text-align:
