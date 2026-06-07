@@ -408,3 +408,35 @@ async function handleLogin() {
         location.reload();
     }
 }
+// 💖 Thinki AI Pro Upgrade Modal Trigger
+function showUpgradeModal() {
+  // Check if a modal is already open so we don't duplicate it
+  if (document.querySelector('.upgrade-modal-overlay')) return;
+
+  // Create the modal HTML layout
+  const modalOverlay = document.createElement('div');
+  modalOverlay.className = 'upgrade-modal-overlay';
+  
+  modalOverlay.innerHTML = `
+    <div class="upgrade-modal-content">
+      <h2>Upgrade to Thinki Pro 💖</h2>
+      <p>Unlock premium tools like unlimited chat, file uploads, continuous context memory, and advanced audio generation features for just $15/month.</p>
+      <button class="upgrade-btn" id="stripe-upgrade-checkout-btn">Upgrade Now ✨</button>
+      <br />
+      <button class="close-modal-btn" id="close-upgrade-modal">Maybe Later</button>
+    </div>
+  `;
+
+  document.body.appendChild(modalOverlay);
+
+  // Close Button Logic
+  document.getElementById('close-upgrade-modal').addEventListener('click', () => {
+    modalOverlay.remove();
+  });
+
+  // Upgrade Button Logic (We'll wire this to your backend API checkout next!)
+  document.getElementById('stripe-upgrade-checkout-btn').addEventListener('click', () => {
+    alert("Redirecting to our secure Stripe checkout sandbox... 🚀");
+    // Soon this will trigger your serverless function to open Stripe checkout!
+  });
+}
