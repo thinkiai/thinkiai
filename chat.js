@@ -47,3 +47,14 @@ if (supabaseClient) {
             
             if (document.getElementById('chat-container')) document.getElementById('chat-container').innerHTML = '';
             if (document.getElementById('history-sidebar-list')) document.getElementById('history-sidebar-list').innerHTML = '';
+        }
+    });
+}
+
+// 🧭 SIDEBAR GENERATOR: Pulls unique historic conversations from the database
+async function renderSidebarSessions() {
+    if (!supabaseClient || !currentUser) return;
+    const sidebarList = document.getElementById('history-sidebar-list');
+    if (!sidebarList) return;
+
+    try {
