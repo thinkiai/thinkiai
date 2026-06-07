@@ -334,13 +334,16 @@ async function sendMessage() {
         
         const data = await response.json();
         
+        // 🛡️ Bulletproof fallback: Scrapes all variant object keys to permanently dodge 'undefined'
+        let aiReplyText = data.text || data.reply || data.message || data.response || (data.choices && data.choices[0]?.message?.content) || "No response text found.";
+        
         const aiDiv = document.createElement('div');
-        aiDiv.innerHTML = `<strong>Thinki AI:</strong> ${data.text}`;
+        aiDiv.innerHTML = `<strong>Thinki AI:</strong> ${aiReplyText}`;
         aiDiv.style.color = "#60a5fa";
         aiDiv.style.margin = "8px 0";
         chatContainer.appendChild(aiDiv);
         
-        await saveMessageToSupabase('ai', data.text);
+        await saveMessageToSupabase('ai', aiReplyText);
         renderSidebarSessions();
         
         chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -418,20 +421,42 @@ async function handleLogin() {
     }
 }
 
-// 💖 PRO UPGRADE MODAL TRIGGER
-function showUpgradeModal() {
+// 💖 PRO UPGRADE MODAL TRIGGER (FIXED ELEMENT BACKDROP RENDERING OVERLAY)
+window.showUpgradeModal = function showUpgradeModal() {
   if (document.querySelector('.upgrade-modal-overlay')) return;
 
   const modalOverlay = document.createElement('div');
   modalOverlay.className = 'upgrade-modal-overlay';
   
+  // Apply backdrop screen pinning directly into the JavaScript compiler logic
+  Object.assign(modalOverlay.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(15, 23, 42, 0.85)', 
+    backdropFilter: 'blur(8px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: '99999', 
+    padding: '20px',
+    boxSizing: 'border-box'
+  });
+  
   modalOverlay.innerHTML = `
-    <div class="upgrade-modal-content">
-      <h2>Upgrade to Thinki Pro 💖</h2>
-      <p>Unlock premium tools like unlimited chat, file uploads, continuous context memory, and advanced audio generation features for just $15/month.</p>
-      <button class="upgrade-btn" id="stripe-upgrade-checkout-btn">Upgrade Now ✨</button>
-      <br />
-      <button class="close-modal-btn" id="close-upgrade-modal">Maybe Later</button>
+    <div class="upgrade-modal-content" style="background: #1e293b; border: 2px solid #ec4899; padding: 30px; border-radius: 16px; max-width: 450px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(236, 72, 153, 0.2); color: white; font-family: sans-serif;">
+      <h2 style="margin-top: 0; color: #ec4899; font-size: 24px; margin-bottom: 15px;">Upgrade to Thinki Pro 💖</h2>
+      <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6; margin-bottom: 25px;">
+        Unlock premium tools like unlimited chat, file uploads, continuous context memory, and advanced audio generation features for just $15/month.
+      </p>
+      <button class="upgrade-btn" id="stripe-upgrade-checkout-btn" style="background: linear-gradient(135deg, #ec4899, #f43f5e); color: white; border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); transition: transform 0.2s;">
+        Upgrade Now ✨
+      </button>
+      <button class="close-modal-btn" id="close-upgrade-modal" style="background: transparent; color: #94a3b8; border: none; margin-top: 15px; cursor: pointer; font-size: 14px; text-decoration: underline;">
+        Maybe Later
+      </button>
     </div>
   `;
 
