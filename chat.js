@@ -11,7 +11,7 @@ let userPlanStatus = 'free';
 // 🧭 TRACKS THE ACTIVE CONVERSATION SESSION UNTIL A NEW ONE IS CREATED
 let currentChatId = crypto.randomUUID(); 
 
-// 🍔 SIDEBAR TOGGLE FUNCTION (Smoothly opens and closes the menu block)
+// 🍔 SIDEBAR TOGGLE FUNCTION (Smoothly opens and closes the menu block globally)
 window.toggleSidebarMenu = function() {
     const sidebar = document.getElementById('thinki-sidebar') || document.querySelector('.sidebar');
     if (sidebar) {
@@ -59,31 +59,3 @@ async function renderSidebarSessions() {
 
     try {
         const { data, error } = await supabaseClient
-            .from('messages')
-            .select('chat_id, chat_title, created_at')
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        const uniqueChats = [];
-        const seenIds = new Set();
-        data.forEach(item => {
-            if (!seenIds.has(item.chat_id)) {
-                seenIds.add(item.chat_id);
-                uniqueChats.push(item);
-            }
-        });
-
-        sidebarList.innerHTML = '';
-        uniqueChats.forEach(chat => {
-            const chatBtn = document.createElement('button');
-            chatBtn.innerText = chat.chat_title || "Saved Chat Session";
-            chatBtn.style.width = "100%";
-            chatBtn.style.padding = "10px";
-            chatBtn.style.background = chat.chat_id === currentChatId ? "#3b82f6" : "transparent";
-            chatBtn.style.border = "none";
-            chatBtn.style.borderRadius = "6px";
-            chatBtn.style.color = "white";
-            chatBtn.style.textAlign = "left";
-            chatBtn.style.cursor = "pointer";
-            chatBtn.style.overflow
