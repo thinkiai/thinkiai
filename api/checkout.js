@@ -18,19 +18,18 @@ module.exports = async (req, res) => {
   try {
     const { email } = req.body;
 
-    // 🌟 Create a secure Stripe Checkout Session for your $15/month Pro Plan
+    // 🌟 Secure Stripe Checkout Session for your $15/month Pro Plan
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       customer_email: email,
       line_items: [
         {
-          // Replace this with your actual Price ID from your Stripe Dashboard when ready
-          price: 'price_12345_your_actual_pro_price_id', 
+          // 💖 YOUR REAL THINKI PRO PRICE ID IS ALIVE!
+          price: 'price_1TfOSqRkATGLFbB3kf3v8uRi', 
           quantity: 1,
         },
       ],
       mode: 'subscription',
-      // Dynamic links back to your app depending on success or cancel
       success_url: `${req.headers.origin}/chat.html?session_id={CHECKOUT_SESSION_ID}&status=success`,
       cancel_url: `${req.headers.origin}/chat.html?status=cancel`,
     });
