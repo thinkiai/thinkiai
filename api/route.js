@@ -22,8 +22,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ text: "Please provide a text message or an image input!" });
     }
 
-    // Call the Gemini 2.0 Flash engine
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    // Call the Gemini 2.5 Flash engine
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(textPrompt);
     const responseText = await result.response.text();
 
