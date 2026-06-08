@@ -487,6 +487,22 @@ window.showUpgradeModal = function showUpgradeModal() {
             
             const data = await response.json();
             
+            // 🔊 MAKE THINKI TALK BACK OUT LOUD!
+if ('speechSynthesis' in window) {
+    // Stop any speech that might already be playing
+    window.speechSynthesis.cancel(); 
+
+    // Clean out any markdown bold asterisks or HTML tags
+    const cleanSpeechText = data.text.replace(/<[^>]*>/g, '').replace(/\*/g, ''); 
+    const utterance = new SpeechSynthesisUtterance(cleanSpeechText);
+    
+    // Customize Thinki's voice profile
+    utterance.pitch = 1.15; // Give her an elegant, warm tone
+    utterance.rate = 1.0;   // Set a natural speaking pace
+    
+    window.speechSynthesis.speak(utterance);
+}
+            
             if (data.url) {
                 window.location.href = data.url;
             } else {
