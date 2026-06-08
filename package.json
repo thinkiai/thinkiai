@@ -1,6 +1,7 @@
 {
-  "name": "thinki-ai",
+  "name": "thinki-ai", 
   "version": "1.0.0",
+  "type": "module",
   "dependencies": {
     "@google/generative-ai": "^0.1.0"
   }
