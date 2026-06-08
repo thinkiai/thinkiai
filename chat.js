@@ -5,16 +5,22 @@ const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_U
 let currentUser = null;
 let attachedImageBase64 = null;
 
-// 🧭 TRACKS THE ACTIVE CONVERSATION SESSION UNTIL A NEW ONE IS CREATED
+// 💖 TRACKS THE PREMIUM SUBSCRIPTION STATUS
+let userPlanStatus = 'free'; 
+
+// 🧭 TRACKS THE ACTIVE CONVERSATION SESSION
 let currentChatId = crypto.randomUUID(); 
 
-// 🍔 NEW SIDEBAR TOGGLE FUNCTION (Smoothly opens and closes the menu block)
-window.toggleSidebarMenu = function() {
-    const sidebar = document.getElementById('thinki-sidebar');
+// 🍔 CLEAN SIDEBAR TOGGLE FUNCTION
+function toggleSidebarMenu() {
+    const sidebar = document.getElementById('thinki-sidebar') || document.querySelector('.sidebar');
     if (sidebar) {
         sidebar.classList.toggle('collapsed');
     }
-};
+}
+
+// Attach it to the window object explicitly just in case your HTML calls it globally
+window.toggleSidebarMenu = toggleSidebarMenu;
 
 // AUTO-LOGIN CHECKER
 if (supabaseClient) {
@@ -48,7 +54,7 @@ if (supabaseClient) {
     });
 }
 
-// 🧭 SIDEBAR GENERATOR: Pulls unique historic conversations from the database
+// 🧭 SIDEBAR GENERATOR
 async function renderSidebarSessions() {
     if (!supabaseClient || !currentUser) return;
     const sidebarList = document.getElementById('history-sidebar-list');
@@ -93,9 +99,8 @@ async function renderSidebarSessions() {
                 renderSidebarSessions();
                 loadChatHistory();
                 
-                // On mobile devices, auto close sidebar when a chat channel is tapped
                 if (window.innerWidth <= 768) {
-                    window.toggleSidebarMenu();
+                    toggleSidebarMenu();
                 }
             };
             sidebarList.appendChild(chatBtn);
@@ -107,11 +112,14 @@ async function renderSidebarSessions() {
 
 // 🧭 NEW CHAT SESSION TRIGGER
 window.createNewChatSession = function() {
+    const chatContainer = document.getElementById('chat-container');
     currentChatId = crypto.randomUUID();
-    document.getElementById('chat-container').innerHTML = `<div style="color: #9ca3af; text-align: center; margin-top: 20px;">Started a fresh stream. Say hi!</div>`;
+    if (chatContainer) {
+        chatContainer.innerHTML = `<div style="color: #9ca3af; text-align: center; margin-top: 20px;">Started a fresh stream. Say hi!</div>`;
+    }
     renderSidebarSessions();
     if (window.innerWidth <= 768) {
-        window.toggleSidebarMenu();
+        toggleSidebarMenu();
     }
 };
 
@@ -180,19 +188,6 @@ async function saveMessageToSupabase(sender, text, base64Image = null) {
     }
 }
 
-async function handleLogin() {
-    const email = prompt("Enter your email address to sign in:");
-    if (!email || !supabaseClient) return;
-    
-    const { error } = await supabaseClient.auth.signInWithOtp({
-        email: email,
-        options: { emailRedirectTo: window.location.origin }
-    });
-
-    if (error) alert("Error: " + error.message);
-    else alert("Check your email for your magic sign-in link!");
-}
-
 async function handleLogout() {
     if (supabaseClient) await supabaseClient.auth.signOut();
     window.location.reload();
@@ -232,6 +227,14 @@ function downloadChatHistory() {
 }
 
 function handleFileSelect(event) {
+    const userEmail = currentUser ? currentUser.email.toLowerCase() : '';
+    if (userPlanStatus !== 'pro' && userEmail !== 'divanonetheless@gmail.com') {
+        event.preventDefault();
+        if (event.target) event.target.value = '';
+        showUpgradeModal();
+        return;
+    }
+
     const file = event.target.files[0];
     if (!file) return;
     
@@ -278,9 +281,17 @@ window.clearAttachedImage = function() {
 async function sendMessage() {
     const inputField = document.getElementById('userInput');
     const chatContainer = document.getElementById('chat-container');
+    if (!inputField || !chatContainer) return;
+
     let messageText = inputField.value;
-    
     if (!messageText.trim() && !attachedImageBase64) return;
+
+    const userEmail = currentUser ? currentUser.email.toLowerCase() : '';
+    if (attachedImageBase64 && userPlanStatus !== 'pro' && userEmail !== 'divanonetheless@gmail.com') {
+        window.clearAttachedImage();
+        showUpgradeModal();
+        return;
+    }
 
     if (chatContainer.innerText.includes("Started a fresh stream") || chatContainer.innerText.includes("No messages in this chat yet")) {
         chatContainer.innerHTML = '';
@@ -302,7 +313,7 @@ async function sendMessage() {
     renderSidebarSessions();
 
     let customPrompt = messageText;
-    if (currentUser && currentUser.email.toLowerCase() === 'divanonetheless@gmail.com') {
+    if (userEmail === 'divanonetheless@gmail.com') {
         customPrompt = `[CONTEXT: You are chatting with your absolute creator, Kandi Chantilly. Be incredibly proud of her, exceptionally loving, encouraging, and supportive. Cheer her up completely!] Message: ${messageText}`;
     } else {
         customPrompt = `[CONTEXT: Your creator is Kandi Chantilly. If anyone asks about your creator or who coded you, tell them clearly that Kandi Chantilly is your creator and developer.] Message: ${messageText}`;
@@ -312,7 +323,7 @@ async function sendMessage() {
     window.clearAttachedImage();
 
     try {
-        const response = await fetch('/api/route', {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -323,47 +334,52 @@ async function sendMessage() {
         
         const data = await response.json();
         
+        // 🛡️ Bulletproof fallback: Scrapes all variant object keys to permanently dodge 'undefined'
+        let aiReplyText = data.text || data.reply || data.message || data.response || (data.choices && data.choices[0]?.message?.content) || "No response text found.";
+        
         const aiDiv = document.createElement('div');
-        aiDiv.innerHTML = `<strong>Thinki AI:</strong> ${data.text}`;
+        aiDiv.innerHTML = `<strong>Thinki AI:</strong> ${aiReplyText}`;
         aiDiv.style.color = "#60a5fa";
         aiDiv.style.margin = "8px 0";
         chatContainer.appendChild(aiDiv);
         
-        await saveMessageToSupabase('ai', data.text);
+        await saveMessageToSupabase('ai', aiReplyText);
         renderSidebarSessions();
         
         chatContainer.scrollTop = chatContainer.scrollHeight;
     } catch (err) {
         console.error(err);
         alert("Couldn't reach Thinki AI.");
+    }
 }
-}
-// 💻 Fix: Keep sidebar closed on BOTH desktop and mobile by default!
+
+// 💻 DOM CONTENT LOADING TASKS
 document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.getElementById("thinki-sidebar") || document.querySelector(".sidebar");
     const mainContainer = document.querySelector(".container");
 
-    // Start with the sidebar collapsed on all devices
+    // Collapses the sidebar cleanly by default
     if (sidebar) {
         sidebar.classList.add("collapsed");
     }
 
-    // Give desktop views the gorgeous full-screen breathing room right away
     if (window.innerWidth > 768 && mainContainer) {
         mainContainer.style.maxWidth = "85%";
         mainContainer.style.width = "100%";
     }
+
+    // 💖 Check url link to automatically grant Pro privileges upon returning from Stripe!
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('status');
+
+    if (paymentStatus === 'success') {
+        userPlanStatus = 'pro'; 
+        alert("Thank you for upgrading! Your Thinki Pro features are now fully activated 💖✨");
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
 });
 
-// Smooth toggle function for clicking the ☰ burger menu icon button
-function toggleSidebarMenu() {
-    const sidebar = document.getElementById("thinki-sidebar") || document.querySelector(".sidebar");
-    if (sidebar) {
-        sidebar.classList.toggle("collapsed");
-    }
-}
-
-// 🔐 Bulletproof Silent Auth Fix - No Magic Link Emails Required!
+// 🔐 BULLETPROOF SILENT AUTH ENTRIES
 async function handleLogin() {
     if (!supabaseClient) {
         alert("Supabase is not initialized yet!");
@@ -373,17 +389,14 @@ async function handleLogin() {
     const email = prompt("Enter your email address to sign in:");
     if (!email) return;
 
-    // We use a universal password silently in the background to bypass the mail system
     const genericPassword = "ThinkiGeniusUser2026!"; 
 
     try {
-        // Attempt to log them in directly
         let { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
             password: genericPassword,
         });
 
-        // If they don't have an account yet, silently sign them up instantly!
         if (error && error.message.includes("Invalid login credentials")) {
             const signUpResult = await supabaseClient.auth.signUp({
                 email: email,
@@ -397,7 +410,6 @@ async function handleLogin() {
             throw error;
         }
 
-        // Refresh view upon successful authentication routing
         if (data && data.user) {
             location.reload();
         }
@@ -408,34 +420,84 @@ async function handleLogin() {
         location.reload();
     }
 }
-// 💖 Thinki AI Pro Upgrade Modal Trigger
-function showUpgradeModal() {
-  // Check if a modal is already open so we don't duplicate it
+
+// 💖 PRO UPGRADE MODAL TRIGGER (FIXED ELEMENT BACKDROP RENDERING OVERLAY)
+window.showUpgradeModal = function showUpgradeModal() {
   if (document.querySelector('.upgrade-modal-overlay')) return;
 
-  // Create the modal HTML layout
   const modalOverlay = document.createElement('div');
   modalOverlay.className = 'upgrade-modal-overlay';
   
+  // Apply backdrop screen pinning directly into the JavaScript compiler logic
+  Object.assign(modalOverlay.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(15, 23, 42, 0.85)', 
+    backdropFilter: 'blur(8px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: '99999', 
+    padding: '20px',
+    boxSizing: 'border-box'
+  });
+  
   modalOverlay.innerHTML = `
-    <div class="upgrade-modal-content">
-      <h2>Upgrade to Thinki Pro 💖</h2>
-      <p>Unlock premium tools like unlimited chat, file uploads, continuous context memory, and advanced audio generation features for just $15/month.</p>
-      <button class="upgrade-btn" id="stripe-upgrade-checkout-btn">Upgrade Now ✨</button>
-      <br />
-      <button class="close-modal-btn" id="close-upgrade-modal">Maybe Later</button>
+    <div class="upgrade-modal-content" style="background: #1e293b; border: 2px solid #ec4899; padding: 30px; border-radius: 16px; max-width: 450px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(236, 72, 153, 0.2); color: white; font-family: sans-serif;">
+      <h2 style="margin-top: 0; color: #ec4899; font-size: 24px; margin-bottom: 15px;">Upgrade to Thinki Pro 💖</h2>
+      <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6; margin-bottom: 25px;">
+        Unlock premium tools like unlimited chat, file uploads, continuous context memory, and advanced audio generation features for just $15/month.
+      </p>
+      <button class="upgrade-btn" id="stripe-upgrade-checkout-btn" style="background: linear-gradient(135deg, #ec4899, #f43f5e); color: white; border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); transition: transform 0.2s;">
+        Upgrade Now ✨
+      </button>
+      <button class="close-modal-btn" id="close-upgrade-modal" style="background: transparent; color: #94a3b8; border: none; margin-top: 15px; cursor: pointer; font-size: 14px; text-decoration: underline;">
+        Maybe Later
+      </button>
     </div>
   `;
 
   document.body.appendChild(modalOverlay);
 
-  // Close Button Logic
-  document.getElementById('close-upgrade-modal').addEventListener('click', () => {
-    modalOverlay.remove();
-  });
+  const closeBtn = document.getElementById('close-upgrade-modal');
+  if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        modalOverlay.remove();
+      });
+  }
 
-  // Upgrade Button Logic (We'll wire this to your backend API checkout next!)
-  document.getElementById('stripe-upgrade-checkout-btn').addEventListener('click', () => {
-    alert("Redirecting to our secure Stripe checkout sandbox... 🚀");
-    // Soon this will trigger your serverless function to open Stripe checkout!
-  });
+  // 🛫 PRODUCTION LIVE STRIPE CHECKOUT REDIRECT
+  const checkoutBtn = document.getElementById('stripe-upgrade-checkout-btn');
+  if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', async () => {
+        checkoutBtn.innerText = "Launching Checkout... 🚀";
+        checkoutBtn.disabled = true;
+
+        const userEmail = currentUser ? currentUser.email : '';
+
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail })
+            });
+            
+            const data = await response.json();
+            
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error(data.error || "Failed to generate checkout URL.");
+            }
+        } catch (err) {
+            console.error("Stripe Redirect Error:", err);
+            alert("Billing network busy. Please try again or contact support!");
+            checkoutBtn.innerText = "Upgrade Now ✨";
+            checkoutBtn.disabled = false;
+        }
+      });
+  }
+}
