@@ -1,8 +1,1 @@
-{
-  "version": 2,
-  "routes": [
-    { "src": "/api/chat", "dest": "/api/route.js" },
-    { "src": "/api/checkout", "dest": "/api/checkout.js" },
-    { "src": "/api/(.*)", "dest": "/api/$1" }
-  ]
-}
+{}
