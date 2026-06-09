@@ -5,8 +5,8 @@
       "destination": "/api/route.js"
     },
     {
-      "source": "/api/checkout",
-      "destination": "/api/checkout.js"
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
     }
   ]
 }
