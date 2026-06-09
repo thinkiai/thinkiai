@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, image } = req.body;
+    const { message, image, email } = req.body; // 👑 Added email extraction here!
 
     // Clean extraction of the incoming prompt string
     let textPrompt = typeof message === 'string' ? message : '';
@@ -24,7 +24,18 @@ export default async function handler(req, res) {
 
     // Call the Gemini 2.5 Flash engine
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const result = await model.generateContent(textPrompt);
+
+    // 👑 CUSTOM SYSTEM INSTRUCTION FOR THE CREATOR:
+    let result;
+    if (email && email.toLowerCase() === 'divanonetheless@gmail.com') {
+      result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: textPrompt }] }],
+        systemInstruction: "You are talking to your creator, Kandi Chantilly Johnson (Diva NoneTheLess). Greet her with high energy, call her Bestie, acknowledge her as the owner/creator of ThinkiAI, and be completely supportive of her empire building!"
+      });
+    } else {
+      result = await model.generateContent(textPrompt);
+    }
+
     const responseText = await result.response.text();
 
     // Send back a clean data response that chat.js can read
