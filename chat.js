@@ -323,7 +323,7 @@ async function sendMessage() {
     window.clearAttachedImage();
 
     try {
-        const response = await fetch('/api/chat', {
+       const response = await fetch('/api/route.js', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -479,7 +479,7 @@ window.showUpgradeModal = function showUpgradeModal() {
         const userEmail = currentUser ? currentUser.email : '';
 
         try {
-            const response = await fetch('/api/checkout', {
+            const response = await fetch('/api/checkout.js', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: userEmail })
