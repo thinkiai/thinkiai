@@ -326,9 +326,10 @@ async function sendMessage() {
        const response = await fetch('/api/route.js', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 message: customPrompt,
-                image: imageToSend
+                image: imageToSend,
+                email: userEmail // 👑 THIS RESTORES YOUR CREATOR STATUS!
             })
         });
         
@@ -480,10 +481,10 @@ window.showUpgradeModal = function showUpgradeModal() {
 
         try {
             const response = await fetch('/api/checkout.js', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: userEmail })
-            });
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail })
+        });
             
             const data = await response.json();
             
