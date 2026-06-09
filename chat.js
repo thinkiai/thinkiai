@@ -329,7 +329,7 @@ async function sendMessage() {
             body: JSON.stringify({
                 message: customPrompt,
                 image: imageToSend,
-                email: userEmail // 👑 THIS RESTORES YOUR CREATOR STATUS!
+                email: userEmail //
             })
         });
         
