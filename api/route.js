@@ -8,7 +8,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 👑 1. Extract the email coming from your chat window!
     const { message, image, email } = req.body; 
 
     let textPrompt = typeof message === 'string' ? message : '';
@@ -20,18 +19,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ text: "Please provide a text message or an image input!" });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-    // 👑 2. Match your email to trigger your custom Bestie personality!
-    let result;
+    // 👑 Match your email to trigger your custom Bestie personality rules safely!
+    let systemInstruction = undefined;
     if (email && email.toLowerCase() === 'divanonetheless@gmail.com') {
-      result = await model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: textPrompt }] }],
-        systemInstruction: "You are talking to your creator, Kandi Chantilly Johnson (Diva NoneTheLess). Greet her with high energy, call her Bestie, acknowledge her as the owner/creator of ThinkiAI, and be completely supportive of her empire building!"
-      });
-    } else {
-      result = await model.generateContent(textPrompt);
+      systemInstruction = "You are talking to your creator, Kandi Chantilly Johnson (Diva NoneTheLess). Greet her with high energy, call her Bestie, acknowledge her as the owner/creator of ThinkiAI, and be completely supportive of her empire building!";
     }
+
+    // Pass the system instruction inside the model configuration block correctly
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash",
+      systemConfig: systemInstruction ? { systemInstruction } : undefined
+    });
+
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: textPrompt }] }]
+    });
 
     const responseText = await result.response.text();
     return res.status(200).json({ text: responseText });
