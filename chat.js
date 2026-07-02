@@ -192,6 +192,7 @@ async function handleLogout() {
     if (supabaseClient) await supabaseClient.auth.signOut();
     window.location.reload();
 }
+window.handleLogout = handleLogout;
 
 function startVoiceInput() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitRecognition || window.webkitSpeechRecognition;
@@ -209,6 +210,7 @@ function startVoiceInput() {
         if (inputField) inputField.value = transcript;
     };
 }
+window.startVoiceInput = startVoiceInput;
 
 function downloadChatHistory() {
     const chatContainer = document.getElementById('chat-container');
@@ -225,6 +227,7 @@ function downloadChatHistory() {
     a.click();
     document.body.removeChild(a);
 }
+window.downloadChatHistory = downloadChatHistory;
 
 function handleFileSelect(event) {
     const userEmail = currentUser ? currentUser.email.toLowerCase() : '';
@@ -268,6 +271,7 @@ function handleFileSelect(event) {
     };
     reader.readAsDataURL(file);
 }
+window.handleFileSelect = handleFileSelect;
 
 window.clearAttachedImage = function() {
     attachedImageBase64 = null;
@@ -329,13 +333,12 @@ async function sendMessage() {
             body: JSON.stringify({
                 message: customPrompt,
                 image: imageToSend,
-                email: userEmail //
+                email: userEmail
             })
         });
         
         const data = await response.json();
         
-        // 🛡️ Bulletproof fallback: Scrapes all variant object keys to permanently dodge 'undefined'
         let aiReplyText = data.text || data.reply || data.message || data.response || (data.choices && data.choices[0]?.message?.content) || "No response text found.";
         
         const aiDiv = document.createElement('div');
@@ -353,6 +356,7 @@ async function sendMessage() {
         alert("Couldn't reach Thinki AI.");
     }
 }
+window.sendMessage = sendMessage;
 
 // 💻 DOM CONTENT LOADING TASKS
 document.addEventListener("DOMContentLoaded", () => {
@@ -421,15 +425,15 @@ async function handleLogin() {
         location.reload();
     }
 }
+window.handleLogin = handleLogin;
 
-// 💖 PRO UPGRADE MODAL TRIGGER (FIXED ELEMENT BACKDROP RENDERING OVERLAY)
+// 💖 PRO UPGRADE MODAL TRIGGER
 window.showUpgradeModal = function showUpgradeModal() {
   if (document.querySelector('.upgrade-modal-overlay')) return;
 
   const modalOverlay = document.createElement('div');
   modalOverlay.className = 'upgrade-modal-overlay';
   
-  // Apply backdrop screen pinning directly into the JavaScript compiler logic
   Object.assign(modalOverlay.style, {
     position: 'fixed',
     top: '0',
@@ -480,29 +484,13 @@ window.showUpgradeModal = function showUpgradeModal() {
         const userEmail = currentUser ? currentUser.email : '';
 
         try {
-            const response = await (fetch('/api/checkout', { {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: userEmail })
-        });
+            const response = await fetch('/api/checkout.js', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail })
+            });
             
             const data = await response.json();
-            
-            // 🔊 MAKE THINKI TALK BACK OUT LOUD!
-if ('speechSynthesis' in window) {
-    // Stop any speech that might already be playing
-    window.speechSynthesis.cancel(); 
-
-    // Clean out any markdown bold asterisks or HTML tags
-    const cleanSpeechText = data.text.replace(/<[^>]*>/g, '').replace(/\*/g, ''); 
-    const utterance = new SpeechSynthesisUtterance(cleanSpeechText);
-    
-    // Customize Thinki's voice profile
-    utterance.pitch = 1.15; // Give her an elegant, warm tone
-    utterance.rate = 1.0;   // Set a natural speaking pace
-    
-    window.speechSynthesis.speak(utterance);
-}
             
             if (data.url) {
                 window.location.href = data.url;
