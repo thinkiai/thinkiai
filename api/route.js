@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, image, email } = req.body; 
+    const { message, image, email, history } = req.body; 
 
     let textPrompt = typeof message === 'string' ? message : '';
     if (typeof message === 'object' && message !== null) {
@@ -19,20 +19,40 @@ export default async function handler(req, res) {
       return res.status(400).json({ text: "Please provide a text message or an image input!" });
     }
 
-    // 👑 Match your email to trigger your custom Bestie personality rules safely!
+    // 👑 Creator personality trigger rule
     let systemInstruction = undefined;
     if (email && email.toLowerCase() === 'divanonetheless@gmail.com') {
       systemInstruction = "You are talking to your creator, Kandi Chantilly Johnson (Diva NoneTheLess). Greet her with high energy, call her Bestie, acknowledge her as the owner/creator of ThinkiAI, and be completely supportive of her empire building!";
+    } else {
+      systemInstruction = "Your creator is Kandi Chantilly Johnson. If anyone asks about your creator or who coded you, tell them clearly that Kandi Chantilly is your creator and developer.";
     }
 
-    // Pass the system instruction inside the model configuration block correctly
     const model = genAI.getGenerativeModel({ 
       model: "gemini-2.5-flash",
       systemConfig: systemInstruction ? { systemInstruction } : undefined
     });
 
+    // 🧠 BUILD CONTINUOUS CONVERSATIONAL MEMORY STREAM
+    const formattedContents = [];
+    
+    // Add history if it exists
+    if (history && Array.isArray(history)) {
+      history.forEach(msg => {
+        formattedContents.push({
+          role: msg.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.message_text }]
+        });
+      });
+    }
+
+    // Append the current fresh message
+    formattedContents.push({
+      role: 'user',
+      parts: [{ text: textPrompt }]
+    });
+
     const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: textPrompt }] }]
+      contents: formattedContents
     });
 
     const responseText = await result.response.text();
