@@ -19,10 +19,9 @@ export default async function handler(req, res) {
   try {
     const { email } = req.body;
 
-    // Secure Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
+    // 🛠️ Safeguard: Only include customer_email if it's a valid, non-empty string
+    const sessionConfig = {
       payment_method_types: ['card'],
-      customer_email: email,
       line_items: [
         {
           price: 'price_1TfOSqRkATGLFbB3kf3v8uRi', 
@@ -32,7 +31,14 @@ export default async function handler(req, res) {
       mode: 'subscription',
       success_url: `${req.headers.origin}/index.html?session_id={CHECKOUT_SESSION_ID}&status=success`,
       cancel_url: `${req.headers.origin}/index.html?status=cancel`,
-    });
+    };
+
+    if (email && email.trim() !== '') {
+      sessionConfig.customer_email = email;
+    }
+
+    // Secure Stripe Checkout Session
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(200).json({ url: session.url });
@@ -40,3 +46,4 @@ export default async function handler(req, res) {
     console.error('Stripe Session Error:', error);
     return res.status(500).json({ error: error.message });
   }
+}
