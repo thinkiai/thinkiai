@@ -6,7 +6,7 @@ let currentUser = null;
 let attachedImageBase64 = null;
 let userPlanStatus = 'free'; 
 let currentChatId = crypto.randomUUID(); 
-let loadedMessagesArray = []; // Tracks memory context active state
+let loadedMessagesArray = [];
 
 function toggleSidebarMenu() {
     const sidebar = document.getElementById('thinki-sidebar') || document.querySelector('.sidebar');
@@ -28,16 +28,48 @@ if (supabaseClient) {
                 welcomeTxt.innerText = currentUser.email.toLowerCase() === 'divanonetheless@gmail.com' ? "Welcome, Creator 👑" : `Hi, ${currentUser.email.split('@')[0]}`;
             }
             if (logoutBtn) logoutBtn.style.display = 'inline';
+            
+            // Check if user is creator to unlock features automatically
+            if (currentUser.email.toLowerCase() === 'divanonetheless@gmail.com') {
+                userPlanStatus = 'pro';
+            }
+            
             renderSidebarSessions();
             loadChatHistory();
         } else {
             currentUser = null;
+            userPlanStatus = 'free';
             if (loginBtn) loginBtn.style.display = 'inline';
             if (welcomeTxt) welcomeTxt.style.display = 'none';
             if (logoutBtn) logoutBtn.style.display = 'none';
+            
+            const chatContainer = document.getElementById('chat-container');
+            if (chatContainer) chatContainer.innerHTML = `<div style="color: #9ca3af; text-align: center; margin-top: 20px;">Please sign in to chat.</div>`;
         }
     });
 }
+
+// 📱 MOBILE SIGN-OUT FIX: Explicitly wired function to clear session cleanly
+window.handleLogout = async function() {
+    if (supabaseClient) {
+        await supabaseClient.auth.signOut();
+        alert("Signed out successfully! 👋");
+        location.reload();
+    }
+};
+
+// 📂 FILE UPLOAD & PRO CHECK FIX: Intercepts clicks for free users
+window.triggerFileUpload = function() {
+    if (userPlanStatus !== 'pro') {
+        const priceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID || '';
+        alert("File uploads are a Thinki Pro feature! Redirecting you to upgrade... 💖✨");
+        window.location.href = `https://checkout.stripe.com/initiate_checkout_placeholder_or_your_link`; 
+        return;
+    }
+    
+    const hiddenInput = document.getElementById('hidden-file-input');
+    if (hiddenInput) hiddenInput.click();
+};
 
 async function renderSidebarSessions() {
     if (!supabaseClient || !currentUser) return;
@@ -130,7 +162,6 @@ async function loadChatHistory() {
     } catch (err) { console.error(err); }
 }
 
-// 🎨 COMPONENT GENERATOR MATCHING "Add this to Thinki 2.png"
 function appendActionButtons(containerDiv, plainText) {
     const actionBar = document.createElement('div');
     Object.assign(actionBar.style, {
@@ -138,7 +169,7 @@ function appendActionButtons(containerDiv, plainText) {
     });
 
     actionBar.innerHTML = `
-        <span class="action-btn" title="Like" style="cursor:pointer; hover:color:white;">👍</span>
+        <span class="action-btn" title="Like" style="cursor:pointer;">👍</span>
         <span class="action-btn" title="Dislike" style="cursor:pointer;">👎</span>
         <span class="action-btn" title="Regenerate" style="cursor:pointer;" onclick="window.regenerateLastMessage()">🔄</span>
         <span class="action-btn" title="Copy Conversation" style="cursor:pointer;" onclick="window.copyToClipboard(\`${plainText.replace(/`/g, '\\`').replace(/\${/g, '\\${')}\`)">📋</span>
@@ -195,14 +226,14 @@ async function sendMessage() {
     chatContainer.appendChild(userDiv);
     inputField.value = '';
 
-    // Strip current context history tracking out before appending
     const historyPayload = [...loadedMessagesArray];
 
     await saveMessageToSupabase('user', messageText, attachedImageBase64);
     renderSidebarSessions();
 
     try {
-       const response = await fetch('/api/route.js', {
+       // 🛠️ FIXED: Clean api route path without ".js" extension
+       const response = await fetch('/api/route', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
