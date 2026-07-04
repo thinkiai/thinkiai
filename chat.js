@@ -63,7 +63,7 @@ window.triggerFileUpload = function() {
     if (userPlanStatus !== 'pro') {
         const priceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID || '';
         alert("File uploads are a Thinki Pro feature! Redirecting you to upgrade... 💖✨");
-        window.location.href = `https://checkout.stripe.com/initiate_checkout_placeholder_or_your_link`; 
+        window.location.href = `https://buy.stripe.com/dRmeVfaiD7Wl2P75m757W00`; 
         return;
     }
     
