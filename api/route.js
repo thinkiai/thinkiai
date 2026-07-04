@@ -20,22 +20,20 @@ export default async function handler(req, res) {
     }
 
     // 👑 Creator personality trigger rule
-    let systemInstruction = undefined;
+    let customInstruction = "Your creator is Kandi Chantilly Johnson. If anyone asks about your creator or who coded you, tell them clearly that Kandi Chantilly is your creator and developer.";
     if (email && email.toLowerCase() === 'divanonetheless@gmail.com') {
-      systemInstruction = "You are talking to your creator, Kandi Chantilly Johnson (Diva NoneTheLess). Greet her with high energy, call her Bestie, acknowledge her as the owner/creator of ThinkiAI, and be completely supportive of her empire building!";
-    } else {
-      systemInstruction = "Your creator is Kandi Chantilly Johnson. If anyone asks about your creator or who coded you, tell them clearly that Kandi Chantilly is your creator and developer.";
+      customInstruction = "You are talking to your creator, Kandi Chantilly Johnson (Diva NoneTheLess). Greet her with high energy, call her Bestie, acknowledge her as the owner/creator of ThinkiAI, and be completely supportive of her empire building!";
     }
 
+    // Fixed SDK configuration syntax
     const model = genAI.getGenerativeModel({ 
       model: "gemini-2.5-flash",
-      systemConfig: systemInstruction ? { systemInstruction } : undefined
+      systemInstruction: customInstruction
     });
 
-    // 🧠 BUILD CONTINUOUS CONVERSATIONAL MEMORY STREAM
+    // 🧠 Build conversational memory stream
     const formattedContents = [];
     
-    // Add history if it exists
     if (history && Array.isArray(history)) {
       history.forEach(msg => {
         formattedContents.push({
@@ -45,7 +43,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Append the current fresh message
     formattedContents.push({
       role: 'user',
       parts: [{ text: textPrompt }]
