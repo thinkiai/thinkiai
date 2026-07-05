@@ -1,4 +1,4 @@
-       <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -162,12 +162,16 @@
         <button class="menu-toggle-btn" onclick="toggleSidebarMenu()">☰</button>
         
         <div id="thinki-sidebar" class="sidebar">
-            <button onclick="createNewChatSession()" style="width: 100%; padding: 12px; background: #3b82f6; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s;">
+            <button onclick="createNewChatSession()" style="width: 100%; padding: 12px; background: #3b82f6; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s; margin-bottom: 8px;">
                 + New Chat
             </button>
+
+            <!-- 👑 Sleek Subscription Upgrade Trigger Link inside the Sidebar Navigation Menu -->
+            <button onclick="window.redirectToStripe()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #d97706, #b45309); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+                👑 Upgrade Subscription
+            </button>
             
-            <div id="history-sidebar-list" class="sidebar-list-container">
-                </div>
+            <div id="history-sidebar-list" class="sidebar-list-container"></div>
         </div>
 
         <div class="main-chat-window">
@@ -197,8 +201,9 @@
                         <button onclick="startVoiceInput()" style="background: #4b5563; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;">🎙️ Mic</button>
                         <button onclick="downloadChatHistory()" style="background: #4b5563; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;">📥 Download</button>
                         
-                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)" />
-                        <button onclick="document.getElementById('fileInput').click()" style="background: #4b5563; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;">📎 File</button>
+                        <!-- 🛠️ FIXED: File components now link explicitly to triggerFileUpload gatekeeper in chat.js -->
+                        <input type="file" id="hidden-file-input" accept="image/*" style="display: none;" onchange="handleFileSelect(event)" />
+                        <button onclick="window.triggerFileUpload()" style="background: #4b5563; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;">📎 File</button>
                     </div>
                 </div>
             </div>
