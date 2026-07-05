@@ -289,3 +289,51 @@ async function handleLogin() {
     } catch (err) { location.reload(); }
 }
 window.handleLogin = handleLogin;
+// 🎙️ VOICE INPUT HANLDER (Web Speech API)
+window.startVoiceInput = function() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Settings Check: Your current browser doesn't support speech recognition. Please try using Google Chrome or Safari! 🎙️");
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    const micButton = document.querySelector('button[onclick="startVoiceInput()"]');
+    const originalText = micButton ? micButton.innerText : "🎙️ Mic";
+    
+    if (micButton) {
+        micButton.innerText = "🛑 Listening...";
+        micButton.style.background = "#ef4444"; // Turn button red while recording
+    }
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        const inputField = document.getElementById('userInput');
+        if (inputField) {
+            // Append the spoken text to whatever is already typed
+            if (inputField.value.trim() !== "") {
+                inputField.value += " " + transcript;
+            } else {
+                inputField.value = transcript;
+            }
+        }
+    };
+
+    recognition.onerror = function(event) {
+        console.error("Speech recognition error error: ", event.error);
+        alert(`Mic issue noticed: ${event.error}. Please ensure microphone permissions are granted to this site!`);
+    };
+
+    recognition.onend = function() {
+        if (micButton) {
+            micButton.innerText = originalText;
+            micButton.style.background = "#4b5563"; // Revert button back to grey
+        }
+    };
+};
