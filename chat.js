@@ -56,14 +56,18 @@ window.handleLogout = async function() {
     }
 };
 
-// 📂 FILE UPLOAD & PRO CHECK FIX: Safe redirect without using backend process.env strings
+// 💳 GLOBAL STRIPE REDIRECT (Can be linked to any upgrade button)
+window.redirectToStripe = function() {
+    alert("Redirecting you to upgrade to Thinki Pro... 💖✨");
+    window.location.href = "https://buy.stripe.com/dRmeVfaiD7Wl2P75m757W00";
+};
+
+// 📂 FILE UPLOAD INTERCEPT
 window.triggerFileUpload = function() {
     if (userPlanStatus !== 'pro') {
-        alert("File uploads are a Thinki Pro feature! Redirecting you to upgrade... 💖✨");
-        window.location.href = "https://buy.stripe.com/dRmeVfaiD7Wl2P75m757W00"; 
+        window.redirectToStripe();
         return;
     }
-    
     const hiddenInput = document.getElementById('hidden-file-input');
     if (hiddenInput) hiddenInput.click();
 };
@@ -223,10 +227,8 @@ async function sendMessage() {
     chatContainer.appendChild(userDiv);
     inputField.value = '';
 
-    // If starting fresh, manually inject a greeting tracking state to backend context
-    const historyPayload = loadedMessagesArray.length === 0 && userEmail === 'divanonetheless@gmail.com' 
-        ? [{ sender: 'user', message_text: "Initialize system config. Know that you are speaking to your creator Kandi." }]
-        : [...loadedMessagesArray];
+    // Cleaned up array copy to prevent breaking the layout or tone mechanics
+    const historyPayload = [...loadedMessagesArray];
 
     await saveMessageToSupabase('user', messageText, attachedImageBase64);
     renderSidebarSessions();
@@ -238,6 +240,7 @@ async function sendMessage() {
             body: JSON.stringify({
                 message: messageText,
                 email: userEmail,
+                isCreator: (userEmail === 'divanonetheless@gmail.com'),
                 history: historyPayload
             })
         });
