@@ -29,7 +29,6 @@ if (supabaseClient) {
             }
             if (logoutBtn) logoutBtn.style.display = 'inline';
             
-            // Check if user is creator to unlock features automatically
             if (currentUser.email.toLowerCase() === 'divanonetheless@gmail.com') {
                 userPlanStatus = 'pro';
             }
@@ -49,7 +48,6 @@ if (supabaseClient) {
     });
 }
 
-// 📱 MOBILE SIGN-OUT FIX: Explicitly wired function to clear session cleanly
 window.handleLogout = async function() {
     if (supabaseClient) {
         await supabaseClient.auth.signOut();
@@ -58,12 +56,11 @@ window.handleLogout = async function() {
     }
 };
 
-// 📂 FILE UPLOAD & PRO CHECK FIX: Intercepts clicks for free users
+// 📂 FILE UPLOAD & PRO CHECK FIX: Safe redirect without using backend process.env strings
 window.triggerFileUpload = function() {
     if (userPlanStatus !== 'pro') {
-        const priceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID || '';
         alert("File uploads are a Thinki Pro feature! Redirecting you to upgrade... 💖✨");
-        window.location.href = `https://buy.stripe.com/dRmeVfaiD7Wl2P75m757W00`; 
+        window.location.href = "https://buy.stripe.com/dRmeVfaiD7Wl2P75m757W00"; 
         return;
     }
     
@@ -226,13 +223,15 @@ async function sendMessage() {
     chatContainer.appendChild(userDiv);
     inputField.value = '';
 
-    const historyPayload = [...loadedMessagesArray];
+    // If starting fresh, manually inject a greeting tracking state to backend context
+    const historyPayload = loadedMessagesArray.length === 0 && userEmail === 'divanonetheless@gmail.com' 
+        ? [{ sender: 'user', message_text: "Initialize system config. Know that you are speaking to your creator Kandi." }]
+        : [...loadedMessagesArray];
 
     await saveMessageToSupabase('user', messageText, attachedImageBase64);
     renderSidebarSessions();
 
     try {
-       // 🛠️ FIXED: Clean api route path without ".js" extension
        const response = await fetch('/api/route', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
